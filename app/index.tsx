@@ -1,9 +1,9 @@
 import * as React from "react";
-import { StyleSheet, View, TouchableOpacity } from "react-native";
-import { Appbar, Button, Card, Text } from "react-native-paper";
+import { StyleSheet, View } from "react-native";
+import { Button, Card, Text } from "react-native-paper";
 import { useRouter, useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { DrawerActions } from "@react-navigation/native";
+import Header from "../components/header";
 
 
 // when expo is used to make native apps, expo router is used to set up routes 
@@ -15,14 +15,10 @@ import { DrawerActions } from "@react-navigation/native";
 
 export default function Welcome() {
   // const router = useRouter();
-  const navigation = useNavigation();
+  const router = useRouter();
   return (
     <SafeAreaView style={styles.safeArea}  edges={["top", "bottom"]}>
-      <Appbar.Header mode="center-aligned" elevated style={styles.header}>
-        <Appbar.Action icon="menu" color="white" onPress={() => navigation.dispatch(DrawerActions.openDrawer())} />
-        <Appbar.Content title="FormBase" color="white"  />
-      </Appbar.Header>
-
+      <Header />
       <View style={styles.container}>
         <Text variant="headlineMedium" style={styles.title}>
           Welcome to FormBase!
@@ -54,7 +50,6 @@ export default function Welcome() {
 }
 
 const styles = StyleSheet.create({
-  header: {backgroundColor: '#3A506B'}, 
   safeArea: { flex: 1, backgroundColor: "#fff" },   // moved here
   container: { flex: 1, paddingHorizontal: 18, alignItems: "center" },
   title: { marginTop: 48, fontWeight: "700", textAlign: "center" },

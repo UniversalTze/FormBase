@@ -11,23 +11,13 @@ import {
   Surface,
   Button,
 } from "react-native-paper";
-import { useNavigation } from "expo-router";
-import { DrawerActions } from "@react-navigation/native";
+import Header from "../components/header"
 
 export default function About() {
-  const navigation = useNavigation();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      {/* Top bar */}
-      <Appbar.Header mode="center-aligned" elevated style={styles.header}>
-        <Appbar.Action
-          icon="menu"
-          color="white"
-          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-        />
-        <Appbar.Content title="FormBase" color="white" />
-      </Appbar.Header>
+      <Header />
 
       <ScrollView contentContainerStyle={styles.content}>
         <Card mode="elevated" style={styles.hero}>
@@ -117,7 +107,6 @@ export default function About() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#f7f8fb" },
-  header: { backgroundColor: "#3A506B" },
   content: { padding: 16, gap: 16 },
   hero: { borderRadius: 16 },
   heroInner: { padding: 16, backgroundColor: "#eaf1ff", borderRadius: 16 },

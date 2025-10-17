@@ -1,9 +1,9 @@
 import { Stack } from "expo-router";
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
-import { Provider as PaperProvider, MD3LightTheme as DefaultTheme } from "react-native-paper";
+import { Provider as PaperProvider, MD3LightTheme as DefaultTheme, Icon } from "react-native-paper";
 import { Drawer } from "expo-router/drawer";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const theme = {
   ...DefaultTheme,
@@ -23,8 +23,24 @@ export default function RootLayout() {
           }}
         >
           {/* Map drawer items to routes */}
-          <Drawer.Screen name="index" options={{ drawerLabel: "Home" }} />
-          <Drawer.Screen name="about" options={{ drawerLabel: "About" }} />
+          <Drawer.Screen
+            name="index"
+            options={{
+              drawerLabel: "Home",
+              drawerIcon: ({ color, size }) => (
+                <MaterialCommunityIcons name="home-search" color={color} size={size} />
+              ),
+            }}
+          />
+          <Drawer.Screen 
+            name="about" 
+            options={{ 
+                drawerLabel: "About Us",
+                drawerIcon: ({ color, size }) => (
+                  <MaterialCommunityIcons name="account-group" color={color} size={size} />
+                ),
+              }
+          } />
         </Drawer>
     </PaperProvider>
   );
