@@ -15,10 +15,9 @@ export default function RootLayout() {
   return (
     <PaperProvider theme={theme}>
       <StatusBar style="dark" />
-      {/* Use router headers or hide and render your own Appbar in screens */}
       <Drawer           //for global side bar
           screenOptions={{
-            headerShown: false,     // you'll render your own Appbar in screens
+            headerShown: false,
             drawerType: "front",    // "slide" or "permanent" also valid
           }}
         >
@@ -38,6 +37,15 @@ export default function RootLayout() {
                 drawerLabel: "About Us",
                 drawerIcon: ({ color, size }) => (
                   <MaterialCommunityIcons name="account-group" color={color} size={size} />
+                ),
+              }
+          } />
+          <Drawer.Screen 
+            name="forms" 
+            options={{ 
+                drawerLabel: "Forms",
+                drawerIcon: ({ color, size }) => (
+                  <MaterialCommunityIcons name="dropbox" color={color} size={size} />
                 ),
               }
           } />

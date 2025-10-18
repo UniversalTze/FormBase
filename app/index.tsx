@@ -40,7 +40,7 @@ export default function Welcome() {
           icon="file-document-outline"
           style={styles.newFormButton}
           contentStyle={{ paddingVertical: 6 }}
-         // onPress={() => router.push("/builder")} // <-- your next screen route
+          onPress={() => router.push("/forms")} // <-- your next screen route
         >
           Create a New Form
         </Button>

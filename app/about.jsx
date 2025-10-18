@@ -12,8 +12,10 @@ import {
   Button,
 } from "react-native-paper";
 import Header from "../components/header"
+import { useRouter } from "expo-router";
 
 export default function About() {
+  const router = useRouter();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
@@ -96,7 +98,7 @@ export default function About() {
         icon="file-document-outline"
         style={styles.newFormButton}
         contentStyle={{ paddingVertical: 6 }}
-        // onPress={() => router.push("/builder")} // <-- your next screen route
+        onPress={() => router.push("/forms")} // <-- your next screen route
       >
         Go to Forms
       </Button>
