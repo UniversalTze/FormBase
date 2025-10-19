@@ -1,4 +1,3 @@
-// components/FormEditor.jsx
 import React from "react";
 import { StyleSheet, View, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { Text, TextInput, Button } from "react-native-paper";
