@@ -13,13 +13,13 @@ export default function NewFormScreen() {
   async function handleCreate(values) {
     try {
       setSubmitting(true); // for loading screen).
-      const created = await apiRequest("/forms", "POST", {
-        title: values.name,
+      const created = await apiRequest("/form", "POST", {
+        name: values.name,
         description: values.description,
       });
       // navigate to details or back to list
-      // router.replace(`/forms/${created?.id ?? ""}`); // or: router.back()
-      router.back();
+      // router.replace(`/forms/${created?.id ?? ""}`); // or: router.back() // gonna use the top one (into the form) @TODO
+      router.replace({ pathname: "/forms", params: { refresh: Date.now().toString() } });
     } finally {
       setSubmitting(false); // set it back after finishing.
     }

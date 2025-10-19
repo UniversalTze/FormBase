@@ -10,7 +10,7 @@ export default function FormEditor({
   onSubmit, // function pointer/identifer
   onCancel, // function pointer/identifer
   submitLabel = "Submit",
-}) {
+  }) {
   const [name, setName] = React.useState(initial.name || "");
   const [description, setDescription] = React.useState(initial.description || "");
   const canSubmit = name.trim().length > 0 && !submitting;
