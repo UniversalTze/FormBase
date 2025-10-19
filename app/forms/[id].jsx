@@ -7,8 +7,9 @@ import FormEditor from "../../components/FormEditor";
 import { apiRequest } from "../../api/mainapi";
 import { router, useLocalSearchParams } from "expo-router";
 import { StyleSheet, View } from "react-native";
-import { Text, Card } from "react-native-paper";
 import SummaryCard from "../../components/SummaryCard";
+import ManageFieldsPanel from "../../components/ManageFieldsPanel";
+import { ScrollView } from "react-native-gesture-handler";
 
 export default function SpecificForm() {
   const { id } = useLocalSearchParams(); // "id" from the URL (/forms/edit/123)
@@ -17,8 +18,8 @@ export default function SpecificForm() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
 
-    React.useEffect(() => {
-      (async () => {
+  React.useEffect(() => {
+    (async () => {
         try {
           setError(null); // reset error to null for each request. 
           const data = await apiRequest(`/form?id=eq.${id}`); // Get request
@@ -31,6 +32,10 @@ export default function SpecificForm() {
       })();
     }, [id]);
 
+    const createField = async(name, field_type, options, required, is_num, order_index) => {
+    }
+    const console = () => console.log("HERE");
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header />
@@ -39,6 +44,10 @@ export default function SpecificForm() {
           title={`${form?.name ?? "Untitled"}`}
           description={form?.description ?? ""}
         />
+        <ScrollView style={styles.container}>
+          <ManageFieldsPanel onSave={ console }
+          />
+        </ScrollView>
         </View>
     </SafeAreaView>
   );
