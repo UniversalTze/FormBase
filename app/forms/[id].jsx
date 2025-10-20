@@ -4,7 +4,7 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Header from "../../components/header";
 import FormEditor from "../../components/FormEditor";
-import { apiRequest } from "../../api/mainapi";
+import { apiRequest } from "../../api/api";
 import { router, useLocalSearchParams } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import SummaryCard from "../../components/SummaryCard";
@@ -45,7 +45,7 @@ export default function SpecificForm() {
           description={form?.description ?? ""}
         />
         <ScrollView style={styles.container}>
-          <ManageFieldsPanel onSave={ console }
+          <ManageFieldsPanel onSave={ console } formId={id}
           />
         </ScrollView>
         </View>

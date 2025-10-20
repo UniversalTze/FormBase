@@ -54,3 +54,11 @@ export async function apiRequest(endpoint, method = "GET", body = null) {
   if (ct.includes("application/json")) return response.json();
   return {};
 }
+
+async function insertField(formId, field) {
+  return apiRequest("/field", "POST", {
+    ...field,
+    form_id: formId,
+  });
+}
+
