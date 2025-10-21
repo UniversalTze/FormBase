@@ -3,13 +3,13 @@
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Header from "../../components/header";
-import FormEditor from "../../components/FormEditor";
-import { apiRequest } from "../../api/api";
+import { apiRequest, insertField } from "../../api/api";
 import { router, useLocalSearchParams } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import SummaryCard from "../../components/SummaryCard";
 import ManageFieldsPanel from "../../components/ManageFieldsPanel";
 import { ScrollView } from "react-native-gesture-handler";
+import { IconButton } from "react-native-paper";
 
 export default function SpecificForm() {
   const { id } = useLocalSearchParams(); // "id" from the URL (/forms/edit/123)
@@ -32,10 +32,6 @@ export default function SpecificForm() {
       })();
     }, [id]);
 
-    const createField = async(name, field_type, options, required, is_num, order_index) => {
-    }
-    const console = () => console.log("HERE");
-
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header />
@@ -44,8 +40,18 @@ export default function SpecificForm() {
           title={`${form?.name ?? "Untitled"}`}
           description={form?.description ?? ""}
         />
+          <View style={styles.backRow}>
+          <IconButton
+            icon="arrow-left"
+            size={24}
+            style={{marginTop: 12}}
+            iconColor="#000"
+            onPress={() => router.replace("/forms")} // always go to /forms
+            accessibilityLabel="Back to Forms"
+          />
+        </View>
         <ScrollView style={styles.container}>
-          <ManageFieldsPanel onSave={ console } formId={id}
+          <ManageFieldsPanel onSave={insertField} formId={id}
           />
         </ScrollView>
         </View>
@@ -55,7 +61,7 @@ export default function SpecificForm() {
 
 const styles = StyleSheet.create(
     { safe: { flex: 1, backgroundColor: "#fff" },
-      container:  { flex: 1, paddingHorizontal: 12, marginTop: 12},
+      container:  { flex: 1, paddingHorizontal: 12},
       pageTitle: { fontWeight: "700", marginTop: 8 },
       titleCard: { marginBottom: 24, backgroundColor: "#f7f8fb"},
       summaryScreen: { flex: 1},

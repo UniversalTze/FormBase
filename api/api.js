@@ -55,7 +55,7 @@ export async function apiRequest(endpoint, method = "GET", body = null) {
   return {};
 }
 
-async function insertField(formId, field) {
+export async function insertField(formId, field) {
   return apiRequest("/field", "POST", {
     ...field,
     form_id: formId,
