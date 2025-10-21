@@ -4,6 +4,15 @@ import { Card, Text, TextInput, Switch, Button, Divider, Menu } from "react-nati
 
 // @TODO (check the video on this and how the form is updated given the drop down options)
  
+function process_dropdown(dropdown) { 
+  if (!dropdown)
+    return null // explicitly returning null (for server)
+  else { 
+    return JSON.stringify({
+       "ddOptions": dropdown.split(",").map(item => item.trim())
+    });
+  }
+}
 export default function ManageFieldsPanel({
   initialExpanded = false,
   onSave, // async api call 
@@ -16,17 +25,18 @@ export default function ManageFieldsPanel({
   const [required, setRequired] = React.useState(false);
   const [numeric, setNumeric] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
-  const [dropdownJson, setDropdownJson] = React.useState(""); // convert to a list before posting to API @TODO
+  const [dropdownJson, setDropdownJson] = React.useState(null); // convert to a list before posting to API @TODO
 
   const [menuKey, setMenuKey] = React.useState(0); // use to re-render dropdown so that 
 
 
-  const canSave = name.trim().length > 0 && !saving;
+  const canSave = (dropdownJson && type === "dropdown" && name.trim().length > 0 & !saving) || 
+                  (name.trim().length > 0 && !saving);
 
   const field = {
     "name": name.trim(),
     "field_type": type,
-    "options": dropdownJson ?? "", //JSON stringy this
+    "options": process_dropdown(dropdownJson), //JSON stringy this
     "required": required,
     "is_num": numeric, 
     "order_index": 1
@@ -37,12 +47,11 @@ export default function ManageFieldsPanel({
     try {
       setSaving(true);
       if (onSave) {
-       // await onSave({ name: name.trim(), type, dropdownJson, required, numeric, order_index=1 }); // for fields
        await onSave(formId, field);
        Alert.alert("Success", "Field created.", [{ text: "OK" }], { cancelable: true });
       }
       // reset & collapse
-      setDropdownJson("");
+      setDropdownJson(null);
       setName("");
       setType("single-line-text");
       setRequired(false);
