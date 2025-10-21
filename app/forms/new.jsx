@@ -1,7 +1,7 @@
 // app/forms/new.jsx
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Alert } from "react-native";
 import Header from "../../components/header";
 import FormEditor from "../../components/FormEditor";
 import { apiRequest } from "../../api/api";
@@ -17,9 +17,9 @@ export default function NewFormScreen() {
         name: values.name,
         description: values.description,
       });
-      // navigate to details or back to list
-      // router.replace(`/forms/${created?.id ?? ""}`); // or: router.back() // gonna use the top one (into the form) @TODO
+
       router.replace({ pathname: "/forms", params: { refresh: Date.now().toString() } });
+      Alert.alert("Success", "Form created.", [{ text: "OK" }], { cancelable: true });
     } finally {
       setSubmitting(false); // set it back after finishing.
     }

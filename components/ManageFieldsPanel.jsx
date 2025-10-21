@@ -1,27 +1,36 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Alert } from "react-native";
 import { Card, Text, TextInput, Switch, Button, Divider, Menu } from "react-native-paper";
 
-
-// Optional: pass onSave to do the API call; return a promise so we can show loading
+// @TODO (check the video on this and how the form is updated given the drop down options)
+ 
 export default function ManageFieldsPanel({
   initialExpanded = false,
-  onSave,                   // async ({ name, type, required, numeric }) => void
+  onSave, // async api call 
+  formId // form id from forms/[id] page
 }) {
   const [expanded, setExpanded] = React.useState(initialExpanded);
   const [name, setName] = React.useState("");
   const [typeOpen, setTypeOpen] = React.useState(false);
-  const [type, setType] = React.useState("text");
+  const [type, setType] = React.useState("single-line-text");
   const [required, setRequired] = React.useState(false);
   const [numeric, setNumeric] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
-  const [dropdownJson, setDropdownJson] = React.useState("");
+  const [dropdownJson, setDropdownJson] = React.useState(""); // convert to a list before posting to API @TODO
 
-  const anchorRef = React.useRef(null);
   const [menuKey, setMenuKey] = React.useState(0); // use to re-render dropdown so that 
 
 
   const canSave = name.trim().length > 0 && !saving;
+
+  const field = {
+    "name": name.trim(),
+    "field_type": type,
+    "options": dropdownJson ?? "", //JSON stringy this
+    "required": required,
+    "is_num": numeric, 
+    "order_index": 1
+  };
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -29,12 +38,13 @@ export default function ManageFieldsPanel({
       setSaving(true);
       if (onSave) {
        // await onSave({ name: name.trim(), type, dropdownJson, required, numeric, order_index=1 }); // for fields
-       await onSave(); 
+       await onSave(formId, field);
+       Alert.alert("Success", "Field created.", [{ text: "OK" }], { cancelable: true });
       }
       // reset & collapse
       setDropdownJson("");
       setName("");
-      setType("text");
+      setType("single-line-text");
       setRequired(false);
       setNumeric(false);
       setExpanded(false);
@@ -76,33 +86,34 @@ export default function ManageFieldsPanel({
               autoCapitalize="sentences"
               returnKeyType="Finish"
             />
-
             <View style={{ marginTop: 12 }}>
               <Menu
                 key={menuKey}
                 visible={typeOpen}
                 onDismiss={() => { setTypeOpen(false)
-                                   setMenuKey(prev => prev + 1)
+                                  setMenuKey(prev => prev + 1)
                   }
                 }
                 anchor={
                   <Button
-                    ref={anchorRef}
                     mode="outlined"
                     icon="chevron-down"
-                    onPress={() => setTypeOpen(true)}
+                    onPress={() => { setTypeOpen(true)
+                      }
+                    }
                     contentStyle={{ justifyContent: "space-between" }}
                   >
                     {type}
                   </Button>
                 }
               >
-                {["text", "multiline", "dropdown", "location"].map((opt) => (
+                {["single-line-text", "multi-line-text", "dropdown", "location", "photo"].map((opt) => (
                   <Menu.Item
                     key={opt}
                     onPress={() => {
                       setType(opt);
                       setTypeOpen(false);
+                      setMenuKey(prev => prev + 1);
                     }}
                     title={opt}
                   />
@@ -114,7 +125,7 @@ export default function ManageFieldsPanel({
             <Text style={styles.subhead}>Dropdown Options (JSON)</Text>
             <TextInput
                 mode="outlined"
-                label='JSON: {dropdown: ["option1", "option2"]}'
+                label='"option1","option2,....'
                 value={dropdownJson}
                 onChangeText={setDropdownJson}
                 multiline
@@ -123,17 +134,16 @@ export default function ManageFieldsPanel({
                 />
             </View>
             )}
-
             <View style={styles.row}>
               <Text>Required</Text>
               <Switch value={required} onValueChange={setRequired} />
             </View>
-
+            {(type === "single-line-text" || type === "multi-line-text") && (
             <View style={styles.row}>
               <Text>Stores Numeric Values</Text>
               <Switch value={numeric} onValueChange={setNumeric} />
             </View>
-
+            )}
             <Button
               mode="contained"
               icon="plus"
