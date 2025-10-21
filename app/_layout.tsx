@@ -1,7 +1,6 @@
 // app/_layout.jsx
-import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import * as React from "react";
+import React from "react";
 import { Provider as PaperProvider, MD3LightTheme as DefaultTheme, Icon } from "react-native-paper";
 import { Drawer } from "expo-router/drawer";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -13,6 +12,7 @@ const theme = {
 };
 
 export default function RootLayout() {
+
   return (
     <PaperProvider theme={theme}>
       <StatusBar style="dark" />

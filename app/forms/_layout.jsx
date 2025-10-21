@@ -3,6 +3,6 @@ import { Stack } from "expo-router";
 
 export default function FormsLayout() {
   return <Stack screenOptions={{ headerShown: false }} >
-            <Stack.Screen name="index" options={{ title: "My Forms" }} />
+            <Stack.Screen name="index" options={{ title: "My Forms", animation: "slide_from_left"}} />
          </Stack>;
 }
