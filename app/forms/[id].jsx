@@ -8,6 +8,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import SummaryCard from "../../components/SummaryCard";
 import ManageFieldsPanel from "../../components/ManageFieldsPanel";
+import AddRecordForm from "../../components/AddRecord";
 import { ScrollView } from "react-native-gesture-handler";
 import { IconButton } from "react-native-paper";
 
@@ -17,6 +18,8 @@ export default function SpecificForm() {
   const [form, setForm] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+  
+  const console = () => console.log("here");
 
   React.useEffect(() => {
     (async () => {
@@ -52,6 +55,8 @@ export default function SpecificForm() {
         </View>
         <ScrollView style={styles.container}>
           <ManageFieldsPanel onSave={insertField} formId={id}
+          />
+          <AddRecordForm formId={id} onCreate={console}
           />
         </ScrollView>
         </View>

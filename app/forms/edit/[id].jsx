@@ -18,17 +18,19 @@ export default function EditFormScreen() {
 
 
   React.useEffect(() => {
+    let mounted = true;
     (async () => {
       try {
         setError(null); // reset error to null for each request. 
         const data = await apiRequest(`/form?id=eq.${id}`); // Get request
-        setForm(data[0]); // data is list of one
+        if (mounted) setForm(data || []);
       } catch (e) {
-        setError(e?.message || "Failed to load form"); // set error if caught. 
+        if (mounted) setError(e?.message || "Failed to load form"); // set error if caught. 
       } finally {
-        setLoading(false);
+        if (mounted)setLoading(false);
       }
     })();
+    return () => { mounted = false};
   }, [id]);
 
   async function handleUpdate(values) {
