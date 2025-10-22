@@ -21,7 +21,7 @@ export default function ManageFieldsPanel({
   const [expanded, setExpanded] = React.useState(initialExpanded);
   const [name, setName] = React.useState("");
   const [typeOpen, setTypeOpen] = React.useState(false);
-  const [type, setType] = React.useState("single-line-text");
+  const [type, setType] = React.useState("Single-Line-Text");
   const [required, setRequired] = React.useState(false);
   const [numeric, setNumeric] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -30,7 +30,7 @@ export default function ManageFieldsPanel({
   const [menuKey, setMenuKey] = React.useState(0); // use to re-render dropdown so that 
 
 
-  const canSave = (dropdownJson && type === "dropdown" && name.trim().length > 0 & !saving) || 
+  const canSave = (dropdownJson && type === "Dropdown" && name.trim().length > 0 & !saving) || 
                   (name.trim().length > 0 && !saving);
 
   const field = {
@@ -53,7 +53,7 @@ export default function ManageFieldsPanel({
       // reset & collapse
       setDropdownJson(null);
       setName("");
-      setType("single-line-text");
+      setType("Single-Line-Text");
       setRequired(false);
       setNumeric(false);
       setExpanded(false);
@@ -67,7 +67,7 @@ export default function ManageFieldsPanel({
       <Card.Title
         title="Manage Fields"
         titleStyle={{ fontWeight: "700" }}
-        style={styles.addbtn}
+        style={styles.addbtntitle}
         right={(props) => (
           <Button
             {...props}
@@ -116,7 +116,7 @@ export default function ManageFieldsPanel({
                   </Button>
                 }
               >
-                {["single-line-text", "multi-line-text", "dropdown", "location", "photo"].map((opt) => (
+                {["Single-Line-Text", "Multi-Line-Text", "Dropdown", "Location", "Photo"].map((opt) => (
                   <Menu.Item
                     key={opt}
                     onPress={() => {
@@ -129,7 +129,7 @@ export default function ManageFieldsPanel({
                 ))}
               </Menu>
             </View>
-            {type === "dropdown" && (
+            {type === "Dropdown" && (
             <View style={{ marginTop: 12 }}>
             <Text style={styles.subhead}>Dropdown Options (JSON)</Text>
             <TextInput
@@ -147,7 +147,7 @@ export default function ManageFieldsPanel({
               <Text>Required</Text>
               <Switch value={required} onValueChange={setRequired} />
             </View>
-            {(type === "single-line-text" || type === "multi-line-text") && (
+            {(type === "Single-Line-Text" || type === "Multi-Line-Text") && (
             <View style={styles.row}>
               <Text>Stores Numeric Values</Text>
               <Switch value={numeric} onValueChange={setNumeric} />
@@ -173,7 +173,7 @@ export default function ManageFieldsPanel({
 
 const styles = StyleSheet.create({
   card: { borderRadius: 12, backgroundColor: "#fff", marginTop: 12, marginBottom: 16 },
-  addbtn: { padding: 8},
+  addbtntitle: { padding: 8},
   subhead: { fontWeight: "600", marginBottom: 4 },
   row: { marginTop: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
 });
