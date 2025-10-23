@@ -23,7 +23,7 @@ export default function EditFormScreen() {
       try {
         setError(null); // reset error to null for each request. 
         const data = await apiRequest(`/form?id=eq.${id}`); // Get request
-        if (mounted) setForm(data || []);
+        if (mounted) setForm(data[0]);
       } catch (e) {
         if (mounted) setError(e?.message || "Failed to load form"); // set error if caught. 
       } finally {

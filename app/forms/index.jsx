@@ -5,9 +5,8 @@ import { Text, Button, ActivityIndicator, Card } from "react-native-paper";
 import { useRouter } from "expo-router";
 import Header from "../../components/header";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StyleSheet, View, RefreshControl } from "react-native";
+import { StyleSheet, View, RefreshControl, FlatList } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { FlatList } from "react-native-gesture-handler";
 import { apiRequest } from "../../api/api";
 
 export default function FormsHome() {
@@ -17,7 +16,6 @@ export default function FormsHome() {
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState(null);
-  const didMountRef = React.useRef(false);
 
   const load = React.useCallback(async () => {
     try {
@@ -30,20 +28,14 @@ export default function FormsHome() {
       setLoading(false); // first render complete, set to false
       setRefreshing(false); // set to true when needed to refresh the data
     }
-    }, []); // empty dep array as it should be loaded once. 
-
-  useFocusEffect( // runs every time this screen becomes visible
+    }, []); // empty dep array as it should be loaded once.
+  
+  useFocusEffect(
     React.useCallback(() => {
-      // first time: show big spinner; subsequent: pull-to-refresh spinner
-      if (forms.length === 0) {
-        setLoading(true);
-      } else {
-        setRefreshing(true);
-      }
-      load(); // load data
-    }, [load, forms.length])
+      setLoading(true);   // programmatic load -> big center spinner
+      load();
+    }, [load])
   );
-
 
   const onRefresh = React.useCallback(() => { // callback function for scrolling (refresh)
     setRefreshing(true);
