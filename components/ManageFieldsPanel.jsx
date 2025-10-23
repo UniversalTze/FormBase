@@ -1,8 +1,6 @@
 import React from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { Card, Text, TextInput, Switch, Button, Divider, Menu } from "react-native-paper";
-
-// @TODO (check the video on this and how the form is updated given the drop down options)
  
 function process_dropdown(dropdown) { 
   if (!dropdown)
@@ -16,7 +14,7 @@ function process_dropdown(dropdown) {
 export default function ManageFieldsPanel({
   initialExpanded = false,
   onSave, // async api call 
-  formId // form id from forms/[id] page
+  formId  // form id from forms/[id] page
 }) {
   const [expanded, setExpanded] = React.useState(initialExpanded);
   const [name, setName] = React.useState("");
@@ -25,7 +23,7 @@ export default function ManageFieldsPanel({
   const [required, setRequired] = React.useState(false);
   const [numeric, setNumeric] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
-  const [dropdownJson, setDropdownJson] = React.useState(null); // convert to a list before posting to API @TODO
+  const [dropdownJson, setDropdownJson] = React.useState(null);
 
   const [menuKey, setMenuKey] = React.useState(0); // use to re-render dropdown so that 
 

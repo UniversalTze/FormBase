@@ -18,8 +18,15 @@ export default function SpecificForm() {
   const [form, setForm] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+
+  const [refreshFieldsKey, setRefreshFieldsKey] = React.useState(0);
+
+  const handleFieldSave = React.useCallback(async (formId, field) => {
+    await insertField(formId, field);     // existing API
+    setRefreshFieldsKey(k => k + 1);      // tell AddRecordForm to reload its fields
+  }, []);
   
-  const console = () => console.log("here");
+  const consolee = () => console.log("here");
 
   React.useEffect(() => {
     (async () => {
@@ -54,9 +61,9 @@ export default function SpecificForm() {
           />
         </View>
         <ScrollView style={styles.container}>
-          <ManageFieldsPanel onSave={insertField} formId={id}
+          <ManageFieldsPanel onSave={handleFieldSave} formId={id}
           />
-          <AddRecordForm formId={id} onCreate={console}
+          <AddRecordForm formId={id} onCreate={consolee} refreshFieldKey={refreshFieldsKey}
           />
         </ScrollView>
         </View>
