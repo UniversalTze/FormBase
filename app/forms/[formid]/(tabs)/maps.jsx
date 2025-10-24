@@ -30,8 +30,6 @@ export default function MapScreen() {
     const load = React.useCallback(async () => {
     try {
       setError(null);  // reset variable if an error occured
-      console.log(formid);
-      console.log("PATH:", usePathname(), "PARAMS:", useLocalSearchParams());
       const allFieldData = await apiRequest(`/field?form_id=eq.${formid}`); // GET fields
       const locationdata = allFieldData.filter((field) => field.field_type === "Location");
       if (locationdata.length > 1) { 
@@ -44,7 +42,7 @@ export default function MapScreen() {
     } finally {
       setLoading(false); // first render complete, set to false
     }
-    }, []); // empty dep array as it should be loaded once.
+    }, [formid]); // empty dep array as it should be loaded once.
   
   useFocusEffect(
     React.useCallback(() => {
@@ -65,6 +63,6 @@ export default function MapScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 12 },
   map: { width: '100%', height: '100%', },
 });

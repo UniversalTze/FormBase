@@ -117,7 +117,7 @@ export default function FormsHome() {
                   </Button>
                    <Button 
                     compact 
-                    onPress={() => router.push(`/forms/edit/${item.id}`)}
+                    onPress={() => router.push(`/forms/${item.id}/edit`)}
                     mode="contained"
                     icon="pencil-outline"
                     buttonColor="#F59E0B"      // Edit = amber

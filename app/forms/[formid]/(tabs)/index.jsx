@@ -14,8 +14,6 @@ import { IconButton } from "react-native-paper";
 
 export default function SpecificForm() {
   const { formid } = useLocalSearchParams(); // "id" from the URL (/forms/edit/123)
-  console.log(formid);
-  console.log("PATH:", usePathname(), "PARAMS:", useLocalSearchParams()); 
   const [submitting, setSubmitting] = React.useState(false);
   const [form, setForm] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
