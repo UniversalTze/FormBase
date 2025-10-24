@@ -6,6 +6,8 @@ import { Text, TextInput, Button, ActivityIndicator, HelperText, Card, Divider,
 from "react-native-paper";
 import { apiRequest } from "../api/api";
 import { useFocusEffect } from "@react-navigation/native";
+import * as Location from 'expo-location';
+import { insertRecord } from "../api/api";
 
 const iconForType = (type = "") => {
   if (type.includes("Location")) return "map-marker";
@@ -30,13 +32,68 @@ export default function AddRecordForm({
   const [empty, SetEmpty] = React.useState(true);
   const [values, setValues] = React.useState({}); // for JSON to be sent for record 
   // shape: { [fieldId]: fieldValue } (can hold multiple ids of field for one record...)
-  // const [refreshField, setRefreshField] = React.useState(refreshFieldKey);
+  const [unfinishedSub, setunFinishedSub] = React.useState(false);
+  const [unfinishedMessage, setunFinishedMessage] = React.useState("");
 
-    // dialog for text entry
+  const isFilled = (v) => {
+  if (v == null) return false;                   // null/undefined
+  if (typeof v === "string") return v.trim().length > 0;
+  if (Array.isArray(v)) return v.length > 0;
+  if (typeof v === "object") return Object.keys(v).length > 0; // e.g. {label,value}
+  return true; // numbers/booleans count as filled
+  
+  };
+
+  const validateRequired = React.useCallback(() => {
+    const requiredFields = fields.filter((field) => field.required);       // array of field objects
+    const answeredSet = new Set(
+      Object.entries(values)
+        .filter(([, value]) => isFilled(value))   // desturcting with value, as value is only needed, while keepin key-entry pair
+        .map(([id]) => Number(id)) //map completed ids to numbers just in case. (type checks)
+    );
+    const missing = requiredFields.filter((f) => !answeredSet.has(f.id));
+    return missing; // array of field objects
+    }, [fields, values]);
+
+
+  const handleSaveRecord = () => {
+    const unfinishedparts = [];
+
+    // Title is required
+    if (!title.trim()) { 
+      unfinishedparts.push("Title");
+      setunFinishedSub(true);
+    }
+
+    // Required fields not filled
+    const missing = validateRequired();
+    if (missing.length) {
+      // show readable field names; fall back to field_type if name absent
+      unfinishedparts.push(...missing.map((field) => field.field_type));
+      setunFinishedSub(true);
+    }
+
+    if (parts.length) {
+      setunFinishedMessage(`Please complete: ${unfinishedparts.join(", ")}`);
+      return; // stop submit
+    }
+
+    setunFinishedSub(false);
+    // clear error and submit
+    setunFinishedMessage("");
+    // TODO: actually create the record
+    onCreate?.({ formId, title: title.trim(), values });
+    // or: await insertRecord({ form_id: formId, title: title.trim(), values });
+  };
+
+
+
+
+  // dialog for text entry
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [tempValue, setTempValue] = React.useState("");
   const [activeField, setActiveField] = React.useState(null);
-  const [dropdownOpenId, setDropdownOpenId] = React.useState(null); // for drop down
+  const [location, setLocation] = React.useState(null); // for location
 
   const onFieldPress = (f) => {
     setActiveField(f);
@@ -57,6 +114,7 @@ export default function AddRecordForm({
     setValues((prev) => ({ ...prev, [activeField.id]: option }));
     setDialogOpen(false);
     setActiveField(null);
+    console.log(values);
   };
 
   const load = React.useCallback(async () => {
@@ -99,24 +157,34 @@ export default function AddRecordForm({
           {
           text: "Yes",
           onPress: () => {
-            // Optional: navigate to field creation screen
+            // insert record here..
             console.log("User chose to add fields");
           },
         },
       ]
     );
   };
+
+  // location
+  React.useEffect(() => { // receives permission from user to use maps. 
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setError('Permission to access location was denied');
+        return;
+      }
+
+      let loc = await Location.getCurrentPositionAsync({});
+      setLocation(loc.coords);
+    })();
+    }, []);
+
+  // dropdown
   const parseDropdownOptions = (dropDownOptions) => {
   if (!dropDownOptions) return [];
     const parsed = JSON.parse(dropDownOptions); // get the options back from Get request.
     const options = parsed["ddOptions"];
     return options;
-  };
-
-  const handlePress = (field) => {
-    if (onFieldPress) return onFieldPress(field);
-    // placeholder action for now
-    Alert.alert(field.name, "Open input screen here (coming soon).");
   };
 
   return (
@@ -202,7 +270,6 @@ export default function AddRecordForm({
         } else { 
           consolee();
         }}}
-      //disabled={!canSave}
       //loading={saving}
       style={styles.addbtn}
       contentStyle={{ paddingVertical: 6 }}
