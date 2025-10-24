@@ -1,14 +1,14 @@
-// app/forms/[id].jsx
+// app/forms/(tabs)/[id]/index.jsx (for a particular form)
 
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Header from "../../components/header";
-import { apiRequest, insertField } from "../../api/api";
+import Header from "../../../../components/header";
+import { apiRequest, insertField } from "../../../../api/api";
 import { router, useLocalSearchParams } from "expo-router";
 import { StyleSheet, View } from "react-native";
-import SummaryCard from "../../components/SummaryCard";
-import ManageFieldsPanel from "../../components/ManageFieldsPanel";
-import AddRecordForm from "../../components/AddRecord";
+import SummaryCard from "../../../../components/SummaryCard";
+import ManageFieldsPanel from "../../../../components/ManageFieldsPanel";
+import AddRecordForm from "../../../../components/AddRecord";
 import { ScrollView } from "react-native-gesture-handler";
 import { IconButton } from "react-native-paper";
 
