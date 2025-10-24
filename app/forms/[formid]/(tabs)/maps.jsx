@@ -3,12 +3,12 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ActivityIndicator } from "react-native-paper";
 import * as Location from 'expo-location';
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, usePathname } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { apiRequest } from '../../../../api/api';
 
 export default function MapScreen() {
-  const { id } = useLocalSearchParams(); // get "id" from the URL (/forms/edit/123) (form id)
+  const { formid } = useLocalSearchParams(); // get "form id" from the URL (/forms/edit/123)
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [location, setLocation] = React.useState(null);
@@ -30,7 +30,9 @@ export default function MapScreen() {
     const load = React.useCallback(async () => {
     try {
       setError(null);  // reset variable if an error occured
-      const allFieldData = await apiRequest(`/field?form_id=eq.${id}`); // GET fields
+      console.log(formid);
+      console.log("PATH:", usePathname(), "PARAMS:", useLocalSearchParams());
+      const allFieldData = await apiRequest(`/field?form_id=eq.${formid}`); // GET fields
       const locationdata = allFieldData.filter((field) => field.field_type === "Location");
       if (locationdata.length > 1) { 
         setHasLocationField(true);

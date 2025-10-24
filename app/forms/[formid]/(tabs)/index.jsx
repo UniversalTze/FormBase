@@ -4,7 +4,7 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Header from "../../../../components/header";
 import { apiRequest, insertField } from "../../../../api/api";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import SummaryCard from "../../../../components/SummaryCard";
 import ManageFieldsPanel from "../../../../components/ManageFieldsPanel";
@@ -13,7 +13,9 @@ import { ScrollView } from "react-native-gesture-handler";
 import { IconButton } from "react-native-paper";
 
 export default function SpecificForm() {
-  const { id } = useLocalSearchParams(); // "id" from the URL (/forms/edit/123)
+  const { formid } = useLocalSearchParams(); // "id" from the URL (/forms/edit/123)
+  console.log(formid);
+  console.log("PATH:", usePathname(), "PARAMS:", useLocalSearchParams()); 
   const [submitting, setSubmitting] = React.useState(false);
   const [form, setForm] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
@@ -32,7 +34,7 @@ export default function SpecificForm() {
     (async () => {
         try {
           setError(null); // reset error to null for each request. 
-          const data = await apiRequest(`/form?id=eq.${id}`); // Get request
+          const data = await apiRequest(`/form?id=eq.${formid}`); // Get request
           setForm(data[0]); // data is list of one
         } catch (e) {
           setError(e?.message || "Failed to load form"); // set error if caught. 
@@ -40,7 +42,7 @@ export default function SpecificForm() {
           setLoading(false);
         }
       })();
-    }, [id]);
+    }, [formid]);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -61,9 +63,9 @@ export default function SpecificForm() {
           />
         </View>
         <ScrollView style={styles.container}>
-          <ManageFieldsPanel onSave={handleFieldSave} formId={id}
+          <ManageFieldsPanel onSave={handleFieldSave} formId={formid}
           />
-          <AddRecordForm formId={id} onCreate={consolee} refreshFieldKey={refreshFieldsKey} formDescription={form?.description}
+          <AddRecordForm formId={formid} onCreate={consolee} refreshFieldKey={refreshFieldsKey} formDescription={form?.description}
           />
         </ScrollView>
         </View>
