@@ -40,7 +40,7 @@ export default function FormsHome() {
   const onRefresh = React.useCallback(() => { // callback function for scrolling (refresh)
     setRefreshing(true);
     load();
-  }, [load]); // dep array, load never changes so cbf never changes. 
+  }, [load]); // dep array, load never changes so callback function never changes. 
 
   const onDelete = React.useCallback(
     async (id) => {

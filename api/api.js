@@ -62,3 +62,10 @@ export async function insertField(formId, field) {
   });
 }
 
+export async function insertRecord(formId, record) {
+  return apiRequest("/record", "POST", {
+    ...record,
+    form_id: formId,
+  });
+}
+
