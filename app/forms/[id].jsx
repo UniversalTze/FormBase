@@ -63,7 +63,7 @@ export default function SpecificForm() {
         <ScrollView style={styles.container}>
           <ManageFieldsPanel onSave={handleFieldSave} formId={id}
           />
-          <AddRecordForm formId={id} onCreate={consolee} refreshFieldKey={refreshFieldsKey}
+          <AddRecordForm formId={id} onCreate={consolee} refreshFieldKey={refreshFieldsKey} formDescription={form?.description}
           />
         </ScrollView>
         </View>
