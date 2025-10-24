@@ -73,7 +73,8 @@ export default function AddRecordForm({
     } finally {
       setLoadingFields(false); // first render complete, set to false
     }
-    }, []); // empty dep array as it should be loaded once. 
+    }, []); // empty dep array as it should be loaded once on mount
+    // every other call to load() function will use the mounted function.
 
   useFocusEffect( // runs every time this screen becomes visible
     React.useCallback(() => {
