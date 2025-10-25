@@ -3,7 +3,7 @@
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Header from "../../../../components/header";
-import { apiRequest, insertField } from "../../../../api/api";
+import { apiRequest, insertField, insertRecord } from "../../../../api/api";
 import { router, useLocalSearchParams, usePathname } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import SummaryCard from "../../../../components/SummaryCard";
@@ -14,7 +14,6 @@ import { IconButton } from "react-native-paper";
 
 export default function SpecificForm() {
   const { formid } = useLocalSearchParams(); // "id" from the URL (/forms/edit/123)
-  const [submitting, setSubmitting] = React.useState(false);
   const [form, setForm] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -24,6 +23,10 @@ export default function SpecificForm() {
   const handleFieldSave = React.useCallback(async (formId, field) => {
     await insertField(formId, field);     // existing API
     setRefreshFieldsKey(k => k + 1);      // tell AddRecordForm to reload its fields
+  }, []);
+
+  const handleRecordCreate = React.useCallback(async (formId, record) => {
+    await insertRecord(formId, record);     // existing API
   }, []);
   
   const consolee = () => console.log("here");
@@ -63,7 +66,7 @@ export default function SpecificForm() {
         <ScrollView style={styles.container}>
           <ManageFieldsPanel onSave={handleFieldSave} formId={formid}
           />
-          <AddRecordForm formId={formid} onCreate={consolee} refreshFieldKey={refreshFieldsKey} formDescription={form?.description}
+          <AddRecordForm formId={formid} onCreate={handleRecordCreate} refreshFieldKey={refreshFieldsKey} formDescription={form?.description}
           />
         </ScrollView>
         </View>

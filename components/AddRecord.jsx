@@ -29,11 +29,17 @@ export default function AddRecordForm({
   const [fields, setFields] = React.useState([]);  
   const [title, setTitle] = React.useState("");
   const [error, setError] = React.useState("");
-  const [empty, SetEmpty] = React.useState(true);
+  const [empty, SetEmpty] = React.useState(true); // only set it when there are no fields
   const [values, setValues] = React.useState({}); // for JSON to be sent for record 
   // shape: { [fieldId]: fieldValue } (can hold multiple ids of field for one record...)
   const [unfinishedSub, setunFinishedSub] = React.useState(false);
   const [unfinishedMessage, setunFinishedMessage] = React.useState("");
+
+    // dialog for text entry
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [tempValue, setTempValue] = React.useState("");
+  const [activeField, setActiveField] = React.useState(null);
+  const [location, setLocation] = React.useState(null); // for location
 
   const isFilled = (v) => {
   if (v == null) return false;                   // null/undefined
@@ -56,7 +62,7 @@ export default function AddRecordForm({
     }, [fields, values]);
 
 
-  const handleSaveRecord = () => {
+  const handleSaveRecord = async () => {
     const unfinishedparts = [];
 
     // Title is required
@@ -73,7 +79,7 @@ export default function AddRecordForm({
       setunFinishedSub(true);
     }
 
-    if (parts.length) {
+    if (unfinishedparts.length) {
       setunFinishedMessage(`Please complete: ${unfinishedparts.join(", ")}`);
       return; // stop submit
     }
@@ -81,19 +87,18 @@ export default function AddRecordForm({
     setunFinishedSub(false);
     // clear error and submit
     setunFinishedMessage("");
+    setTitle(""); // reset title
+    setValues({});
     // TODO: actually create the record
-    onCreate?.({ formId, title: title.trim(), values });
-    // or: await insertRecord({ form_id: formId, title: title.trim(), values });
+    const record = { 
+      "values": JSON.stringify({ 
+        "Title": title,
+        "recordValues": values
+      })
+    }
+    await onCreate(formId, record);
+    Alert.alert("Success", "Record created.", [{ text: "OK" }], { cancelable: true });
   };
-
-
-
-
-  // dialog for text entry
-  const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [tempValue, setTempValue] = React.useState("");
-  const [activeField, setActiveField] = React.useState(null);
-  const [location, setLocation] = React.useState(null); // for location
 
   const onFieldPress = (f) => {
     setActiveField(f);
@@ -143,10 +148,6 @@ export default function AddRecordForm({
       load(); // load data
     }, [load, refreshFieldKey])
   );
-
-  const consolee = () => { 
-    console.log("HERE");
-  }
 
   const showNoFieldsAlert = () => {
     Alert.alert(
@@ -261,6 +262,12 @@ export default function AddRecordForm({
         {error}
       </HelperText>
     )}
+    {unfinishedSub && (
+       <HelperText type="error" visible style={{ marginTop: 6 }}>
+        {unfinishedMessage}
+      </HelperText>
+    )
+    }
       <Button
       mode="contained"
       icon="plus"
@@ -268,7 +275,7 @@ export default function AddRecordForm({
         if (empty) {
           showNoFieldsAlert(); 
         } else { 
-          consolee();
+          handleSaveRecord();
         }}}
       //loading={saving}
       style={styles.addbtn}
