@@ -7,7 +7,6 @@ from "react-native-paper";
 import { apiRequest } from "../api/api";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Location from 'expo-location';
-import { insertRecord } from "../api/api";
 
 const iconForType = (type = "") => {
   if (type.includes("Location")) return "map-marker";
@@ -39,7 +38,6 @@ export default function AddRecordForm({
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [tempValue, setTempValue] = React.useState("");
   const [activeField, setActiveField] = React.useState(null);
-  const [location, setLocation] = React.useState(null); // for location
 
   const isFilled = (v) => {
   if (v == null) return false;                   // null/undefined
@@ -47,7 +45,6 @@ export default function AddRecordForm({
   if (Array.isArray(v)) return v.length > 0;
   if (typeof v === "object") return Object.keys(v).length > 0; // e.g. {label,value}
   return true; // numbers/booleans count as filled
-  
   };
 
   const validateRequired = React.useCallback(() => {
@@ -86,6 +83,7 @@ export default function AddRecordForm({
 
     setunFinishedSub(false);
     // clear error and submit
+    setError(null);
     setunFinishedMessage("");
     setTitle(""); // reset title
     setValues({});
@@ -100,10 +98,22 @@ export default function AddRecordForm({
     Alert.alert("Success", "Record created.", [{ text: "OK" }], { cancelable: true });
   };
 
-  const onFieldPress = (f) => {
-    setActiveField(f);
-    if (f.field_type === "Single-Line-Text" || f.field_type === "Multi-Line-Text") { 
-      setTempValue((values[f.id] ?? "").toString());  // for string texts
+  const onFieldPress = async (field) => {
+    setActiveField(field);
+    if (field.field_type === "Location") { 
+      const coords = await requestLocation(field);
+      if (coords) {
+        // store it in your field values
+        setValues(prev => ({
+          ...prev,
+          [field.id]: `${coords.latitude}, ${coords.longitude}`
+        }));
+    }
+    return; // optional: skip opening the dialog
+
+    }
+    if (field.field_type === "Single-Line-Text" || field.field_type === "Multi-Line-Text") { 
+      setTempValue((values[field.id] ?? "").toString());  // for string texts
     }
     setDialogOpen(true);
   };
@@ -125,7 +135,7 @@ export default function AddRecordForm({
   const load = React.useCallback(async () => {
     try {
       setError(null);  // reset variable if an error occured
-      const data = await apiRequest(`/field?form_id=eq.${formId}`);
+      const data = await apiRequest(`/field?form_id=eq.${formId}&order=id.asc`);
       setFields(Array.isArray(data) ? data : []);
       if (data.length > 0) { 
         SetEmpty(false);
@@ -167,18 +177,17 @@ export default function AddRecordForm({
   };
 
   // location
-  React.useEffect(() => { // receives permission from user to use maps. 
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setError('Permission to access location was denied');
-        return;
-      }
+  async function requestLocation(field) {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    console.log("HEREE");
+    if (status !== 'granted' && field.required) {
+      Alert.alert("Permission denied", "Location access is required to use this field.");
+      return null;
+    }
 
-      let loc = await Location.getCurrentPositionAsync({});
-      setLocation(loc.coords);
-    })();
-    }, []);
+    let loc = await Location.getCurrentPositionAsync({});
+    return loc.coords;
+  }
 
   // dropdown
   const parseDropdownOptions = (dropDownOptions) => {
@@ -228,7 +237,7 @@ export default function AddRecordForm({
             mode="outlined"
             icon={iconForType(f.field_type)}
             onPress={() => onFieldPress(f)}
-            style={{  // need this here for conditionals
+            style={{ 
               marginTop: 10,
               borderRadius: 12,
               borderColor: "#007BFF",
@@ -257,7 +266,7 @@ export default function AddRecordForm({
       )
     }
 
-    {!error && (
+    {error && (
       <HelperText type="error" visible style={{ marginTop: 6 }}>
         {error}
       </HelperText>
@@ -357,7 +366,7 @@ const styles = StyleSheet.create({
   subEmptyText: { color: "#999", fontSize: 13 },
   addbtn: { marginTop: 8, borderRadius: 20, marginBottom: 12},
   dialogbox: { borderRadius: 4, width: '90%', maxWidth: 400, alignSelf: 'center'},   // center horizontally}
-  answerText: { marginTop: 4, marginLeft: 6, color: "grey",fontSize: 14, },
+  answerText: { marginTop: 4, marginLeft: 6, color: "grey",fontSize: 12, },
   answerImage: { marginTop: 6, marginLeft: 6, width: 80, height: 80, borderRadius: 8, resizeMode: "cover" },
   dialogNoOptionText: { padding: 16, color: '#999', textAlign: 'center' },
   dropdownButtons: { marginVertical: 2, marginHorizontal: 8, justifyContent: 'flex-start'}

@@ -28,8 +28,6 @@ export default function SpecificForm() {
   const handleRecordCreate = React.useCallback(async (formId, record) => {
     await insertRecord(formId, record);     // existing API
   }, []);
-  
-  const consolee = () => console.log("here");
 
   React.useEffect(() => {
     (async () => {
