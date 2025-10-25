@@ -21,6 +21,16 @@ export default function Layout() {
         }}
         initialParams={{ formid }}
       />
+       <Tabs.Screen
+        name="records"
+        options={{
+          title: 'Record',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="clipboard-text" size={size} color={color} />
+          ),
+        }}
+        initialParams={{ formid }}
+      />
       <Tabs.Screen
         name="maps"
         options={{

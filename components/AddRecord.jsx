@@ -108,7 +108,7 @@ export default function AddRecordForm({
         // store it in your field values
         setValues(prev => ({
           ...prev,
-          [field.id]: `${coords.latitude}, ${coords.longitude}`
+          [field.id]: `latitude: ${coords.latitude}, longtitude:${coords.longitude}`
           }));
       }
       return; // optional: skip opening the dialog
