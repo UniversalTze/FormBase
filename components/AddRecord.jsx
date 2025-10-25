@@ -7,6 +7,7 @@ from "react-native-paper";
 import { apiRequest } from "../api/api";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Location from 'expo-location';
+import * as ImagePicker from 'expo-image-picker';
 
 const iconForType = (type = "") => {
   if (type.includes("Location")) return "map-marker";
@@ -47,7 +48,7 @@ export default function AddRecordForm({
   return true; // numbers/booleans count as filled
   };
 
-  const validateRequired = React.useCallback(() => {
+  const validateRequired = React.useCallback(() => { // validate required fields
     const requiredFields = fields.filter((field) => field.required);       // array of field objects
     const answeredSet = new Set(
       Object.entries(values)
@@ -59,7 +60,7 @@ export default function AddRecordForm({
     }, [fields, values]);
 
 
-  const handleSaveRecord = async () => {
+  const handleCreateRecord = async () => { // for attempting to create record
     const unfinishedparts = [];
 
     // Title is required
@@ -98,7 +99,8 @@ export default function AddRecordForm({
     Alert.alert("Success", "Record created.", [{ text: "OK" }], { cancelable: true });
   };
 
-  const onFieldPress = async (field) => {
+  const onFieldPress = async (field) => { // for button presses when filling in fields. Determine active fields...
+    // dropdown handled seperately (as long as active field has been set and dialog box is open)
     setActiveField(field);
     if (field.field_type === "Location") { 
       const coords = await requestLocation(field);
@@ -107,10 +109,13 @@ export default function AddRecordForm({
         setValues(prev => ({
           ...prev,
           [field.id]: `${coords.latitude}, ${coords.longitude}`
-        }));
+          }));
+      }
+      return; // optional: skip opening the dialog
     }
-    return; // optional: skip opening the dialog
-
+    if (field.field_type === "Photo") { 
+       await handleChangePress(field);
+       return;
     }
     if (field.field_type === "Single-Line-Text" || field.field_type === "Multi-Line-Text") { 
       setTempValue((values[field.id] ?? "").toString());  // for string texts
@@ -118,21 +123,59 @@ export default function AddRecordForm({
     setDialogOpen(true);
   };
 
+  // text fields
   const saveDialog = () => {
       setValues((prev) => ({ ...prev, [activeField.id]: tempValue })); // save previous entries to fields and adds the new selection
       setDialogOpen(false);
       setActiveField(null);
       setTempValue("");
   };
-
-    const saveDropdownSelection = (option) => {
+  // drop down
+  const saveDropdownSelection = (option) => {
     setValues((prev) => ({ ...prev, [activeField.id]: option }));
     setDialogOpen(false);
     setActiveField(null);
-    console.log(values);
   };
 
-  const load = React.useCallback(async () => {
+    // location
+  async function requestLocation(field) {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted' && field.required) {
+      Alert.alert("Permission denied", "Location access is required to use this field.");
+      return null;
+    }
+
+    let loc = await Location.getCurrentPositionAsync({});
+    return loc.coords;
+  }
+
+  // dropdown
+  const parseDropdownOptions = (dropDownOptions) => {
+  if (!dropDownOptions) return [];
+    const parsed = JSON.parse(dropDownOptions); // get the options back from Get request.
+    const options = parsed["ddOptions"];
+    return options;
+  };
+
+  // photo
+  async function handleChangePress(field) {
+        let result = await ImagePicker.launchImageLibraryAsync({
+             mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            setValues(prev => ({
+          ...prev,
+          [field.id]: `${result.assets[0].uri}`
+          }));
+        }
+        return;
+    }
+
+  const load = React.useCallback(async () => { // for loading all fields onto screen
     try {
       setError(null);  // reset variable if an error occured
       const data = await apiRequest(`/field?form_id=eq.${formId}&order=id.asc`);
@@ -176,26 +219,6 @@ export default function AddRecordForm({
     );
   };
 
-  // location
-  async function requestLocation(field) {
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    console.log("HEREE");
-    if (status !== 'granted' && field.required) {
-      Alert.alert("Permission denied", "Location access is required to use this field.");
-      return null;
-    }
-
-    let loc = await Location.getCurrentPositionAsync({});
-    return loc.coords;
-  }
-
-  // dropdown
-  const parseDropdownOptions = (dropDownOptions) => {
-  if (!dropDownOptions) return [];
-    const parsed = JSON.parse(dropDownOptions); // get the options back from Get request.
-    const options = parsed["ddOptions"];
-    return options;
-  };
 
   return (
   <Card mode="elevated" style={styles.card}>
@@ -248,8 +271,8 @@ export default function AddRecordForm({
           >
             {`${f.field_type}${f.required ? " (*)" : ""}`}
           </Button>
-              {values[f.id] &&  (
-                f.field_type.includes("Photo") ? (
+              {values[f.id] &&  ((
+                f.field_type === "Photo") ? (
                   <Image source={{ uri: values[f.id] }} style={styles.answerImage} />
                 ) : (
                   <Text
@@ -284,7 +307,7 @@ export default function AddRecordForm({
         if (empty) {
           showNoFieldsAlert(); 
         } else { 
-          handleSaveRecord();
+          handleCreateRecord();
         }}}
       //loading={saving}
       style={styles.addbtn}
@@ -367,7 +390,7 @@ const styles = StyleSheet.create({
   addbtn: { marginTop: 8, borderRadius: 20, marginBottom: 12},
   dialogbox: { borderRadius: 4, width: '90%', maxWidth: 400, alignSelf: 'center'},   // center horizontally}
   answerText: { marginTop: 4, marginLeft: 6, color: "grey",fontSize: 12, },
-  answerImage: { marginTop: 6, marginLeft: 6, width: 80, height: 80, borderRadius: 8, resizeMode: "cover" },
+  answerImage: { marginTop: 6, width: 240, height: 240, borderRadius: 8, resizeMode: "cover" },
   dialogNoOptionText: { padding: 16, color: '#999', textAlign: 'center' },
   dropdownButtons: { marginVertical: 2, marginHorizontal: 8, justifyContent: 'flex-start'}
 });

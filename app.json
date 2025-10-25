@@ -38,6 +38,9 @@
             "backgroundColor": "#000000"
           }
         }
+      ], 
+      [ "expo-image-picker",        
+        { "photosPermission": "The app accesses your photos so that you can add it to a record" }      
       ]
     ],
     "experiments": {
