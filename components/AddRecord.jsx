@@ -88,7 +88,6 @@ export default function AddRecordForm({
     setunFinishedMessage("");
     setTitle(""); // reset title
     setValues({});
-    // TODO: actually create the record
     const record = { 
       "values": JSON.stringify({ 
         "Title": title,
