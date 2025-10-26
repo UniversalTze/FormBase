@@ -25,7 +25,7 @@ export default function Layout() {
        <Tabs.Screen
         name="records"
         options={{
-          title: 'Record',
+          title: 'Records',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="clipboard-outline" size={size} color={color} />
           ),
