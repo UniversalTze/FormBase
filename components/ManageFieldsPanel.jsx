@@ -24,7 +24,7 @@ export default function ManageFieldsPanel({
   const [numeric, setNumeric] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [dropdownJson, setDropdownJson] = React.useState(null);
-
+  
   const [menuKey, setMenuKey] = React.useState(0); // use to re-render dropdown so that 
 
 
@@ -114,7 +114,8 @@ export default function ManageFieldsPanel({
                   </Button>
                 }
               >
-                {["Single-Line-Text", "Multi-Line-Text", "Dropdown", "Location", "Photo"].map((opt) => (
+                {["Single-Line-Text", "Multi-Line-Text", "Dropdown", "Location", "Photo"].
+                  map((opt) => (
                   <Menu.Item
                     key={opt}
                     onPress={() => {
