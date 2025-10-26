@@ -1,11 +1,38 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams } from "expo-router";
+import { createContext, useContext, useState, ReactNode } from 'react';
+
+// Create the context
+const RefreshContext = createContext();
+
+// Custom hook to use the context
+export const useRefresh = () => {
+  const context = useContext(RefreshContext);
+  if (!context) {
+    throw new Error('useRefresh must be used within RefreshProvider');
+  }
+  return context;
+};
+
+// Provider component
+function RefreshProvider({ children }) {
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  const triggerRefresh = () => setRefreshKey(prev => prev + 1);
+  
+  return (
+    <RefreshContext.Provider value={{ refreshKey, triggerRefresh }}>
+      {children}
+    </RefreshContext.Provider>
+  );
+}
 
 export default function Layout() {
   const { formid } = useLocalSearchParams(); // get "form id" from the URL (/forms/edit/123)
 
   return (
+    <RefreshProvider>
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -43,5 +70,6 @@ export default function Layout() {
         initialParams={{ formid }}
       />
     </Tabs>
+  </RefreshProvider>
   );
 }

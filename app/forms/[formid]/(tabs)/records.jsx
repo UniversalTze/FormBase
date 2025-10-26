@@ -7,7 +7,7 @@ import Header from "../../../../components/header";
 import RecordsList from "../../../../components/RecordList";
 import SummaryCard from "../../../../components/SummaryCard";
 import { apiRequest } from "../../../../api/api";
-
+import { useRefresh } from './_layout';
 
 
 export default function SpecificRecordForm() {
@@ -15,6 +15,7 @@ export default function SpecificRecordForm() {
   const [form, setForm] = React.useState(null);
   const [error, setError] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const { refreshKey } = useRefresh();
 
   React.useEffect(() => { // load the screen and fill record screen with initial stuff
     (async () => {
@@ -39,7 +40,7 @@ export default function SpecificRecordForm() {
           title={`${form?.name ?? "Untitled"}`}
           description={form?.description ?? ""}
         />
-         <RecordsList formId={formid}/>
+         <RecordsList formId={formid} refreshRecordKey={refreshKey}/>
         </View>
     </SafeAreaView>
   );

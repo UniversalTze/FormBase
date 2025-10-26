@@ -3,16 +3,14 @@ import { View, Text, ScrollView, StyleSheet, Image } from "react-native";
 import { apiRequest } from "../api/api";
 import { useFocusEffect } from "@react-navigation/native";
 import { Button, Card, ActivityIndicator, Divider } from "react-native-paper";
-import { useLocalSearchParams } from "expo-router";
 
 /* 
 TODO's: 
-Represent records -> Logic needs to be written
 Map markers and display information about it. 
 Copy clipboard
 Search Criteria
 */
-export default function RecordsList({ formId, recordRefreshKey }) {
+export default function RecordsList({ formId, refreshRecordKey }) {
   // pass record and field list. 
   const formid = formId;
   const [records, setRecords] = React.useState([]);
@@ -26,8 +24,8 @@ export default function RecordsList({ formId, recordRefreshKey }) {
       (async () => {
           try {
             setError(null); // reset error to null for each request. 
-            const data = await apiRequest(`/record?form_id=eq.${formid}`); // Get request for records
-            const fieldData = await apiRequest(`/field?form_id=eq.${formid}`);
+            const data = await apiRequest(`/record?form_id=eq.${formid}&order=id.asc`); // Get request for records
+            const fieldData = await apiRequest(`/field?form_id=eq.${formid}&order=id.asc`);
             setRecords(data); // data is list of one
             setFields(fieldData);
           } catch (e) {
@@ -42,6 +40,9 @@ export default function RecordsList({ formId, recordRefreshKey }) {
     try {
       setError(null);  // reset variable if an error occured
       const dataRecord = await apiRequest(`/record?form_id=eq.${formid}&order=id.asc`); // GET
+      const fieldData = await apiRequest(`/field?form_id=eq.${formid}&order=id.asc`);
+      setRecords(dataRecord);
+      setFields(fieldData);
     } catch (e) {
       setError(e?.message || "Failed to load records");
     } finally {
@@ -54,7 +55,7 @@ export default function RecordsList({ formId, recordRefreshKey }) {
     React.useCallback(() => {
       setLoading(true);   // programmatic load -> big center spinner
       load();
-    }, [load, records, recordRefreshKey])
+    }, [load, records, refreshRecordKey])
   );
 
   // Deleting a record
@@ -160,7 +161,18 @@ export default function RecordsList({ formId, recordRefreshKey }) {
           </Card>
         ))}
       </View>
-    ) : (
+    ) : loading ?  
+        <View style={styles.center}>
+        <ActivityIndicator />
+      <Text style={{ marginTop: 8 }}>Loading…</Text>
+      </View> 
+      : error ? ( // show message arror
+        <View style={styles.center}> 
+            <Text>{error}
+            </Text>
+        </View>)  
+      :
+    (
       <View style={{ alignItems: 'center', paddingHorizontal: 12}}>
         <Card mode="elevated" style={styles.heroCard}>
           <Card.Cover

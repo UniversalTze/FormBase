@@ -11,12 +11,15 @@ import ManageFieldsPanel from "../../../../components/ManageFieldsPanel";
 import AddRecordForm from "../../../../components/AddRecord";
 import { ScrollView } from "react-native-gesture-handler";
 import { IconButton } from "react-native-paper";
+import { useRefresh } from './_layout';
+import { KeyboardAvoidingView, Platform } from 'react-native';
 
 export default function SpecificForm() {
   const { formid } = useLocalSearchParams(); // "id" from the URL (/forms/edit/123)
   const [form, setForm] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+  const { triggerRefresh } = useRefresh();
 
   const [refreshFieldsKey, setRefreshFieldsKey] = React.useState(0);
 
@@ -26,7 +29,8 @@ export default function SpecificForm() {
   }, []);
 
   const handleRecordCreate = React.useCallback(async (formId, record) => {
-    await insertRecord(formId, record);     // existing API
+    await insertRecord(formId, record);     // existing API to add record
+    triggerRefresh();
   }, []);
 
   React.useEffect(() => {
@@ -44,6 +48,10 @@ export default function SpecificForm() {
     }, [formid]);
 
   return (
+    <KeyboardAvoidingView
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    style={{ flex: 1 }}
+    >
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Header />
        <View style={styles.summaryScreen}>
@@ -69,6 +77,7 @@ export default function SpecificForm() {
         </ScrollView>
         </View>
     </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
