@@ -39,7 +39,7 @@ export default function EditFormScreen() {
         name: values.name,
         description: values.description,
       });
-      router.back();
+      router.push("/forms"); // forces remount of other pages so fresh data is fetched (when navigated too)
     } finally {
       setSubmitting(false); // set submitting back to false
     }
