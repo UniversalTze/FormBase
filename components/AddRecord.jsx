@@ -120,13 +120,13 @@ export default function AddRecordForm({
        await handleChangePress(field);
        return;
     }
-    if (field.field_type === "Single-Line-Text" || field.field_type === "Multi-Line-Text") { 
+    if (field.field_type === "Single-Line-Text" || field.field_type === "Multi-Line-Text") {
       setTempValue((values[field.id] ?? "").toString());  // for string texts
     }
     setDialogOpen(true);
   };
 
-  // text fields
+  // text/num fields
   const saveDialog = () => {
       setValues((prev) => ({ ...prev, [activeField.id]: tempValue })); // save previous entries to fields and adds the new selection
       setDialogOpen(false);

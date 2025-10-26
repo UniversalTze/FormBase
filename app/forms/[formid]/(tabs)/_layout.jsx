@@ -4,6 +4,7 @@ import { useLocalSearchParams } from "expo-router";
 
 export default function Layout() {
   const { formid } = useLocalSearchParams(); // get "form id" from the URL (/forms/edit/123)
+
   return (
     <Tabs
       screenOptions={{
@@ -19,7 +20,7 @@ export default function Layout() {
             <Ionicons name="document-text-outline" size={size} color={color} />
           ),
         }}
-        initialParams={{ formid }}
+        initialParams={{ formid  }}
       />
        <Tabs.Screen
         name="records"
