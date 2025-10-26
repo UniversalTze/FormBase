@@ -1,8 +1,8 @@
 import React from "react";
-import { View, Text, ScrollView, StyleSheet, Image } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Image, Pressable } from "react-native";
 import { apiRequest } from "../api/api";
 import { useFocusEffect } from "@react-navigation/native";
-import { Button, Card, ActivityIndicator, Divider } from "react-native-paper";
+import { Button, Card, ActivityIndicator, Divider, Portal, Dialog, TextInput} from "react-native-paper";
 
 /* 
 TODO's: 
@@ -19,9 +19,21 @@ export default function RecordsList({ formId, refreshRecordKey }) {
   const [empty, SetEmpty] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(true);
   const [error, setError] = React.useState("");
+  const [criteriaOpen, setCriteriaOpen] = React.useState(false);
+
+  const [showFieldList, setShowFieldList] = React.useState(false);
+  const [showOpList, setShowOpList] = React.useState(false);
+  let fieldsList = ["Cost", "Status", "Title", "Created At"];
+  let operatorList = ["Equals", "Not Equals", "Greater Than", "Greater or Equal", "Less Than", "Less or Equal"];
+
+  // display-only values (you’ll replace with your real state/logic)
+  const [selectedField, setSelectedField] = React.useState("");
+  const [selectedOperator, setSelectedOperator] = React.useState("");
+  const [value, setValue] = React.useState("");
   
   React.useEffect(() => { // load the screen and fill record screen with initial stuff
       (async () => {
+        setCriteriaOpen(false); // no dialog box
           try {
             setError(null); // reset error to null for each request. 
             const data = await apiRequest(`/record?form_id=eq.${formid}&order=id.asc`); // Get request for records
@@ -97,6 +109,7 @@ export default function RecordsList({ formId, refreshRecordKey }) {
     .map(([id, v]) => {
       const meta = fieldsById.get(String(id)) || {};
       const type = meta.field_type;
+      const name = meta.name;
       let valueNode = null;
       if (type === "Location") {
         const lat = v["latitude"];
@@ -110,7 +123,7 @@ export default function RecordsList({ formId, refreshRecordKey }) {
       return (
         <View key={id} style={{ paddingVertical: 8 }}>
           <Text style={{ fontSize: 14, color: "#6b7280", marginBottom: 2 }}>
-            {type || "Unknown"}:
+            {name}: ({type})
           </Text>
           {valueNode}
         </View>
@@ -127,6 +140,19 @@ export default function RecordsList({ formId, refreshRecordKey }) {
 
   return (
   <ScrollView style={{ flex: 1 }}>
+    <View style={{ alignItems: 'flex-end', paddingRight: 16}}>
+    <Button 
+      compact 
+      mode="contained"
+      icon="pencil-outline"
+      textColor="#fff"
+      onPress={() => setCriteriaOpen(true)}
+      style={[styles.criteriaBtn, { alignSelf: 'flex-end' }]}
+      contentStyle={styles.btnContent}
+    >
+      Add Criteria
+    </Button>
+  </View>
     {records.length > 0 ? (
       <View style={styles.container}>
         {records.map((r) => (
@@ -187,14 +213,37 @@ export default function RecordsList({ formId, refreshRecordKey }) {
         </Card>
       </View>
     )}
+    <Portal>
+      <Dialog
+        visible={criteriaOpen}
+        onDismiss={() => setCriteriaOpen(false)}
+        style={{ borderRadius: 16 }}
+      >
+        <Dialog.Title>Add Filter Criteria</Dialog.Title>
+        <Dialog.Content>
+          <Text>Select a field, operator, and enter a value.</Text>
+        </Dialog.Content>
+
+        <Dialog.Actions>
+          <Button mode="contained" onPress={() => { /* onAdd(...) */ }} disabled={!selectedField || !selectedOperator || value === ""}>
+            Add
+          </Button>
+          <Button onPress={() => setCriteriaOpen(false)}>Cancel</Button>
+        </Dialog.Actions>
+      </Dialog>
+    </Portal>
   </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { marginVertical: 12, padding: 8 },
-  heroCard: { width: 350, marginBottom: 12, borderRadius: 12, marginTop: 12, width: '100%'}, // take 100 % of card space
+  heroCard: { width: 350, marginBottom: 12, borderRadius: 12, marginTop: 8, width: '100%'}, // take 100 % of card space
   heroImage: { height: 220, backgroundColor: "#eaf1ff", borderRadius: 12, padding: 8},
   emptyFont: { fontSize: 16, color: '#555', marginTop: 12 },
-  answerImage: { marginTop: 6, width: 280, height: 280, borderRadius: 8, resizeMode: "cover" }
+  answerImage: { marginTop: 6, width: 280, height: 280, borderRadius: 8, resizeMode: "cover" },
+  btnContent: { paddingVertical: 2, paddingHorizontal: 4 },
+  btn: { borderRadius: 20 },
+  criteriaBtn: { marginTop: 18},
+  
 });
