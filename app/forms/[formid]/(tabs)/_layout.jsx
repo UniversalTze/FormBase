@@ -26,7 +26,7 @@ export default function Layout() {
         options={{
           title: 'Record',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="clipboard-text" size={size} color={color} />
+            <Ionicons name="clipboard" size={size} color={color} />
           ),
         }}
         initialParams={{ formid }}

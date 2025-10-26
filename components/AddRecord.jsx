@@ -105,9 +105,13 @@ export default function AddRecordForm({
       const coords = await requestLocation(field);
       if (coords) {
         // store it in your field values
+        const coordinates = { 
+          "latitude": coords.latitude,
+          "longtitude": coords.longitude
+        };
         setValues(prev => ({
           ...prev,
-          [field.id]: `latitude: ${coords.latitude}, longtitude:${coords.longitude}`
+          [field.id]: coordinates
           }));
       }
       return; // optional: skip opening the dialog
@@ -273,7 +277,16 @@ export default function AddRecordForm({
               {values[f.id] &&  ((
                 f.field_type === "Photo") ? (
                   <Image source={{ uri: values[f.id] }} style={styles.answerImage} />
-                ) : (
+                ) : f.field_type === "Location" ? 
+                 <Text
+                    style={styles.answerText}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {values[f.id]["latitude"]}   {values[f.id]["longtitude"]}
+                  </Text>
+                  :
+                (
                   <Text
                     style={styles.answerText}
                     numberOfLines={1}
@@ -334,6 +347,8 @@ export default function AddRecordForm({
                   mode="outlined"
                   value={tempValue}
                   onChangeText={setTempValue}
+                  keyboardType={activeField.is_num ? "numeric" : "default"}
+                  inputMode={activeField.is_num ? "numeric" : "text"}
                   multiline={activeField.field_type === "Multi-Line-Text"}
                   numberOfLines={activeField.field_type === "Multi-Line-Text" ? 4 : 1}
                   autoFocus
