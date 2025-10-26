@@ -8,6 +8,7 @@ import { apiRequest } from "../api/api";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
+import { File, Directory, Paths } from 'expo-file-system';
 
 const iconForType = (type = "") => {
   if (type.includes("Location")) return "map-marker";
@@ -17,7 +18,6 @@ const iconForType = (type = "") => {
   if (type.includes("Single-Line-Text")) return "form-textbox";
   return "shape";
 };
-
 
 export default function AddRecordForm({
   formId,
@@ -170,13 +170,31 @@ export default function AddRecordForm({
         });
 
         if (!result.canceled && result.assets && result.assets.length > 0) {
+          const asset = result.assets[0];
+          const persistentUri = await persistLocalAsset(asset.uri);
             setValues(prev => ({
           ...prev,
-          [field.id]: `${result.assets[0].uri}`
+          [field.id]: `${persistentUri}`
           }));
         }
         return;
     }
+
+  async function persistLocalAsset(assetUri) { // (CHATGBT)
+    // 1) Ensure a persistent images/ dir under your app's Documents
+    const imagesDir = new Directory(Paths.document, 'images');
+    if (!imagesDir.exists) imagesDir.create(); // create once
+
+    // 2) Create source/destination File objects
+    const src = new File(assetUri); // can be a file:// URI from ImagePicker
+    const ext = src.extension || (assetUri.match(/\.[^./]+$/)?.[0] ?? '');
+    const name = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
+    const dest = new File(imagesDir, name);
+
+    // 3) Copy the picked image into persistent storage
+    src.copy(dest); // synchronous in the new API
+    return dest.uri; // <-- save THIS in your DB
+  }
 
   const load = React.useCallback(async () => { // for loading all fields onto screen
     try {
@@ -215,7 +233,7 @@ export default function AddRecordForm({
           text: "Yes",
           onPress: () => {
             // insert record here..
-            console.log("User chose to add fields");
+            handleCreateRecord();
           },
         },
       ]

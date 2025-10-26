@@ -41,8 +41,7 @@ export default function RecordsList({ formId, recordRefreshKey }) {
   const load = React.useCallback(async () => {
     try {
       setError(null);  // reset variable if an error occured
-      const dataRecord = await apiRequest(`/record?form_id=eq.${formid}&order=id.asc`); // GETç
-      // setForms(Array.isArray(data) ? data : []);
+      const dataRecord = await apiRequest(`/record?form_id=eq.${formid}&order=id.asc`); // GET
     } catch (e) {
       setError(e?.message || "Failed to load records");
     } finally {
@@ -58,6 +57,20 @@ export default function RecordsList({ formId, recordRefreshKey }) {
     }, [load, records, recordRefreshKey])
   );
 
+  // Deleting a record
+  const onDelete = React.useCallback(
+    async (id) => {
+      const prev = records;
+      setRecords((xs) => xs.filter((rec) => rec.id !== id));
+      try {
+        await apiRequest(`/record?id=eq.${id}`, "DELETE");
+      } catch (e) {
+        setRecords(prev); // reset if any error
+      }
+    },
+    [records, load] // new closure so delete work with latest form values.
+  );
+
   const handleRecordvalue = (record, fields) => {
   // record is a JSON object with id, form_id, values.
   let values = record?.values; // currently a JSON string
@@ -70,7 +83,6 @@ export default function RecordsList({ formId, recordRefreshKey }) {
 
   // create a map of index to the object
   const fieldsById = new Map(fields.map(f => [String(f.id), f]));
-  console.log(values);
 
   // Title (top of card)
   const titleNode = (
@@ -90,7 +102,7 @@ export default function RecordsList({ formId, recordRefreshKey }) {
         const lng = v["longtitude"];
         valueNode = <Text>Latitude:  {lat} {"\n"}Longtitude: {lng}</Text>
       } else if (type === "Photo") {
-        valueNode = <Image source={v} style={styles.answerImage} />
+        valueNode = <Image source={{uri: v}} style={styles.answerImage} />
       } else {
         valueNode = <Text>{String(v)}</Text>;
       }
@@ -121,6 +133,30 @@ export default function RecordsList({ formId, recordRefreshKey }) {
             <Card.Content>
               {handleRecordvalue(r, fields)}
             </Card.Content>
+            <Card.Actions style={{ justifyContent: 'center', alignContent: 'center'}}>
+            <Button 
+              compact 
+              mode="contained"
+              icon="pencil-outline"
+              buttonColor="#5B7C99"      // Edit = amber
+              textColor="#fff"
+              style={styles.btn}
+              contentStyle={styles.btnContent}
+              >
+              Copy
+            </Button>
+            <Button
+              compact
+              mode="contained"
+              onPress={() => onDelete(r.id)}
+              buttonColor="#EF4444"
+              icon="trash-can"
+              style={styles.btn}
+              contentStyle={styles.btnContent}
+            >
+              Delete
+            </Button>
+          </Card.Actions>
           </Card>
         ))}
       </View>
@@ -144,9 +180,9 @@ export default function RecordsList({ formId, recordRefreshKey }) {
 }
 
 const styles = StyleSheet.create({
-  container: { marginVertical: 12 },
+  container: { marginVertical: 12, padding: 8 },
   heroCard: { width: 350, marginBottom: 12, borderRadius: 12, marginTop: 12, width: '100%'}, // take 100 % of card space
   heroImage: { height: 220, backgroundColor: "#eaf1ff", borderRadius: 12, padding: 8},
   emptyFont: { fontSize: 16, color: '#555', marginTop: 12 },
-  answerImage: { marginTop: 6, width: 240, height: 240, borderRadius: 8, resizeMode: "cover" }
+  answerImage: { marginTop: 6, width: 280, height: 280, borderRadius: 8, resizeMode: "cover" }
 });
