@@ -12,3 +12,10 @@ backend for every use case but lacks features for editing/updating fields.
 
 ## Author
 Tze Kheng Goh
+
+## Devices Tested on
+Iphone 13 and default android 16.0 (Medium phone) on Android Emulator.
+
+## Generative AI
+GEN AI (CHATGBT 4.5 and 5.0) along with Claude (free version) has been used to quickly build components, debug and
+summarise information in docs.
