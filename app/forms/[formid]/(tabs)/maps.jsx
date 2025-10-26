@@ -135,7 +135,10 @@ export default function MapScreen() {
       );
       })}
     </MapView>    
-      : error ? (<Text>{error}</Text>) :  <ActivityIndicator />  }
+      : error ? 
+      (<View style={styles.container}>
+        <Text>{error}</Text>
+      </View>) :  <ActivityIndicator />  }
       </View>
       </SafeAreaView>
   );
