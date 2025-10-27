@@ -28,6 +28,13 @@ function RefreshProvider({ children }) {
   );
 }
 
+/**
+ * Form detail layout with tabs.
+ *
+ * Provides a tabbed interface for viewing/editing a form, its records, and map.
+ * Uses a RefreshContext to allow child screens to trigger a refresh of data.
+ * Passes `formid` from the URL to each tab via initialParams.
+ */
 export default function Layout() {
   const { formid } = useLocalSearchParams(); // get "form id" from the URL (/forms/edit/123)
 

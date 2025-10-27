@@ -13,7 +13,11 @@ import Header from "../components/header";
 // instead of using registerRouteComponent in expo
 // this file is rendered when application is ran (entry point)
 
-
+/**
+ * Welcome screen component (Home / Landing Page)
+ * Displays a welcome message, app tagline, hero image, and a button to navigate to the Forms page.
+ * Uses SafeAreaView for proper spacing, Header component for navigation, and React Native Paper for UI components.
+ */
 export default function Welcome() {
   // const router = useRouter();
   const router = useRouter();

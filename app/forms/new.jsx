@@ -7,6 +7,13 @@ import FormEditor from "../../components/FormEditor";
 import { apiRequest } from "../../api/api";
 import { router } from "expo-router";
 
+/**
+ * Screen for creating a new form.
+ *
+ * Renders a form editor for entering the name and description of a new form.
+ * Handles submission via the API and navigates back to the Forms list on success.
+ * Provides user feedback through loading state and alerts.
+ */
 export default function NewFormScreen() {
   const [submitting, setSubmitting] = React.useState(false);
 

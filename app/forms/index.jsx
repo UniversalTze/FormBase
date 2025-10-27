@@ -9,6 +9,13 @@ import { StyleSheet, View, RefreshControl, FlatList } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { apiRequest } from "../../api/api";
 
+/**
+ * Home screen for the Forms section.
+ * 
+ * Displays a list of forms fetched from the API, allows creation of new forms,
+ * and provides options to open, edit, or delete existing forms. Includes pull-to-refresh.
+ * Handles loading and error states with appropriate feedback to the user.
+ */
 export default function FormsHome() {
   const router = useRouter();
 

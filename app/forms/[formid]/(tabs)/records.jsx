@@ -9,7 +9,14 @@ import SummaryCard from "../../../../components/SummaryCard";
 import { apiRequest } from "../../../../api/api";
 import { useRefresh } from './_layout';
 
-
+/**
+ * SpecificRecordForm component displays all records for a particular form.
+ *
+ * Fetches form metadata for the given `formid` and renders a SummaryCard
+ * with form name and description. Below the summary, the RecordsList component
+ * displays all associated records. Refreshes automatically when the parent
+ * tab triggers a refresh via `useRefresh`.
+ */
 export default function SpecificRecordForm() {
   const { formid } = useLocalSearchParams(); // "id" from the URL (/forms/edit/123)
   const [form, setForm] = React.useState(null);

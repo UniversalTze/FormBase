@@ -11,6 +11,9 @@ const theme = {
   colors: { ...DefaultTheme.colors, primary: "#3B82F6", secondary: "#1E3A8A" },
 };
 
+// RootLayout component
+// Provides the global layout for the app, including the PaperProvider theme, status bar, 
+// and a Drawer navigator for main routes (Home, About, Forms) with icons.
 export default function RootLayout() {
 
   return (

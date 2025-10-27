@@ -14,6 +14,15 @@ import { IconButton } from "react-native-paper";
 import { useRefresh } from './_layout';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 
+/**
+ * Screen for viewing and managing a specific form.
+ *
+ * Fetches the form data based on `formid` from the URL.
+ * Displays a summary of the form, allows editing fields, and adding records.
+ * Uses `useRefresh` from the parent tab layout to trigger refreshes in sibling tabs.
+ * Supports keyboard avoiding behavior on iOS and Android.
+ */
+
 export default function SpecificForm() {
   const { formid } = useLocalSearchParams(); // "id" from the URL (/forms/edit/123)
   const [form, setForm] = React.useState(null);

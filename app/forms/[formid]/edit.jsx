@@ -1,4 +1,4 @@
-// app/forms/edit/[id].jsx
+// app/forms/[formid]/edit.jsx
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, View } from "react-native";
@@ -8,6 +8,13 @@ import { useLocalSearchParams, router } from "expo-router";
 import { apiRequest } from "../../../api/api";
 import FormEditor from "../../../components/FormEditor";
 
+/**
+ * Screen for editing an existing form.
+ *
+ * Fetches a form by ID from the API and pre-fills the FormEditor component.
+ * Handles updating the form via PATCH request and navigates back to the Forms list on success.
+ * Displays loading and error states while fetching form data.
+ */
 export default function EditFormScreen() {
   const { formid } = useLocalSearchParams(); // "id" from the URL (/forms/edit/123)
   const [form, setForm] = React.useState(null);

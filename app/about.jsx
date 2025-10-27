@@ -1,4 +1,4 @@
-// app/about.tsx  (or app/about/index.tsx)
+// app/about.jsx
 import * as React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +14,11 @@ import {
 import Header from "../components/header"
 import { useRouter } from "expo-router";
 
+/**
+ * About screen component
+ * Displays app information, features, technologies used, and a navigation button to Forms.
+ * Uses React Native Paper Cards and Lists for structured layout, and SafeAreaView for proper spacing.
+ */
 export default function About() {
   const router = useRouter();
 

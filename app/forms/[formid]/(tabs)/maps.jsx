@@ -1,4 +1,4 @@
-// app/forms/(tabs)/[id]/maps.jsx
+// app/forms/[id]/(tabs)/maps.jsx
 import React from 'react';
 import { View, Text, StyleSheet , Image} from 'react-native';
 import { ActivityIndicator } from "react-native-paper";
@@ -11,7 +11,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Header from '../../../../components/header';
 import SummaryCard from '../../../../components/SummaryCard';
 
-
+/**
+ * MapScreen component for displaying location data of a specific form.
+ *
+ * Fetches form metadata, fields, and records for the given `formid`.
+ * Only shows markers if the form has a "Location" field.
+ * Each record with a location is displayed as a Marker with a Callout
+ * showing other field values (including Photos).
+ * Supports refreshing when the parent tab triggers a refresh via `useRefresh`.
+ */
 export default function MapScreen() {
   const { formid } = useLocalSearchParams(); // get "form id" from the URL (/forms/edit/123)
   const [error, setError] = React.useState("");
@@ -150,5 +158,4 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff" },
   summaryScreen: { flex: 1},
   answerImage: { marginTop: 6, width: 200, height: 200, borderRadius: 8, resizeMode: "cover" }
-
 });
