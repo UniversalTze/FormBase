@@ -55,6 +55,13 @@ export async function apiRequest(endpoint, method = "GET", body = null) {
   return {};
 }
 
+
+/**
+ * Inserts a new field into the specified form.
+ * @param {number|string} formId - The ID of the form to add the field to.
+ * @param {object} field - The field data to insert.
+ * @returns {Promise<object>} - Resolves with the API response for the inserted field.
+ */
 export async function insertField(formId, field) {
   return apiRequest("/field", "POST", {
     ...field,
@@ -62,6 +69,12 @@ export async function insertField(formId, field) {
   });
 }
 
+/**
+ * Inserts a new record into the specified form.
+ * @param {number|string} formId - The ID of the form to add the record to.
+ * @param {object} record - The record data to insert.
+ * @returns {Promise<object>} - Resolves with the API response for the inserted record.
+ */
 export async function insertRecord(formId, record) {
   return apiRequest("/record", "POST", {
     ...record,
