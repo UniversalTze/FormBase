@@ -1,15 +1,11 @@
 import React from "react";
-import { View, Text, ScrollView, StyleSheet, Image, Pressable } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Image, Alert } from "react-native";
 import { apiRequest } from "../api/api";
 import { useFocusEffect } from "@react-navigation/native";
 import { Button, Card, ActivityIndicator, Divider, Portal, Dialog, TextInput} from "react-native-paper";
+import * as Clipboard from "expo-clipboard";
 
-/* 
-TODO's: 
-Map markers and display information about it. 
-Copy clipboard
-Search Criteria
-*/
+
 export default function RecordsList({ formId, refreshRecordKey }) {
   // pass record and field list. 
   const formid = formId;
@@ -20,16 +16,6 @@ export default function RecordsList({ formId, refreshRecordKey }) {
   const [refreshing, setRefreshing] = React.useState(true);
   const [error, setError] = React.useState("");
   const [criteriaOpen, setCriteriaOpen] = React.useState(false);
-
-  const [showFieldList, setShowFieldList] = React.useState(false);
-  const [showOpList, setShowOpList] = React.useState(false);
-  let fieldsList = ["Cost", "Status", "Title", "Created At"];
-  let operatorList = ["Equals", "Not Equals", "Greater Than", "Greater or Equal", "Less Than", "Less or Equal"];
-
-  // display-only values (you’ll replace with your real state/logic)
-  const [selectedField, setSelectedField] = React.useState("");
-  const [selectedOperator, setSelectedOperator] = React.useState("");
-  const [value, setValue] = React.useState("");
   
   React.useEffect(() => { // load the screen and fill record screen with initial stuff
       (async () => {
@@ -83,6 +69,41 @@ export default function RecordsList({ formId, refreshRecordKey }) {
     },
     [records, load] // new closure so delete work with latest form values.
   );
+
+  // copying a record to clipboard
+  const handleCopy = (record) => {
+    let copied = {"id" : record.id}; // copy id
+    let values = record?.values; // currently a JSON string
+    if (values) {
+      try { values = JSON.parse(record.values); } catch {
+        return {}; // hadnle invalid JSON
+      }
+    }
+    copied["Title"] = values["Title"]; // copy title 
+    let recordFieldVals = values["recordValues"];
+      // create a map of index to the object
+    const fieldsById = new Map(fields.map(f => [String(f.id), f]));
+
+    Object.entries(recordFieldVals).forEach(([id, v]) => {
+    const field = fieldsById.get(String(id));
+    if (!field) return; // skip missing metadata
+    if (field.field_type === "Photo") return; // skip images
+
+    if (field.field_type === "Location") {
+      Object.entries(v).forEach(([id, coord]) => {
+        copied[id] = coord;
+      })
+
+    } else { 
+        copied[field.name] = v; // use field name as key
+      }
+    });
+    // optional: copy to clipboard here
+    const text = JSON.stringify(copied, null, 2);
+    Clipboard.setStringAsync(text);
+    Alert.alert("Copied!", "Record copied to clipboard.");
+    return copied; 
+  }
 
   const handleRecordvalue = (record, fields) => {
   // record is a JSON object with id, form_id, values.
@@ -169,6 +190,7 @@ export default function RecordsList({ formId, refreshRecordKey }) {
               textColor="#fff"
               style={styles.btn}
               contentStyle={styles.btnContent}
+              onPress={() => handleCopy(r)}
               >
               Copy
             </Button>
@@ -225,7 +247,7 @@ export default function RecordsList({ formId, refreshRecordKey }) {
         </Dialog.Content>
 
         <Dialog.Actions>
-          <Button mode="contained" onPress={() => { /* onAdd(...) */ }} disabled={!selectedField || !selectedOperator || value === ""}>
+          <Button mode="contained">
             Add
           </Button>
           <Button onPress={() => setCriteriaOpen(false)}>Cancel</Button>
