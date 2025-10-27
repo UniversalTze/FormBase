@@ -105,10 +105,10 @@ export default function AddRecordForm({
     setTitle(""); // reset title
     setValues({});
     const record = { 
-      "values": JSON.stringify({ 
+      "values":{
         "Title": title,
         "recordValues": values
-      })
+      }
     }
     await onCreate(formId, record);
     Alert.alert("Success", "Record created.", [{ text: "OK" }], { cancelable: true });
