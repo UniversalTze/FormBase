@@ -33,7 +33,7 @@ export default function MapScreen() {
 
   const setLocationData = (record, locationField) => {
     let values = record?.values; // currently a JSON string
-     if (values) {
+     if (typeof values === "string") {
         try { values = JSON.parse(record.values); } catch {}
     }
     let recordVals = values["recordValues"];
@@ -45,7 +45,7 @@ export default function MapScreen() {
   const handleRecordvalue = (record) => {
   // record is a JSON object with id, form_id, values.
   let values = record?.values; // currently a JSON string
-  if (values) {
+  if (typeof values === "string") {
     try { values = JSON.parse(record.values); } catch {}
   }
   if (!values || typeof values !== "object") {

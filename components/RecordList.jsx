@@ -1,51 +1,234 @@
 // components/RecordList.jsx
 import React from "react";
-import { View, Text, ScrollView, StyleSheet, Image, Alert } from "react-native";
+
+import { View, Text, StyleSheet, Image, Alert, Pressable, Platform } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { apiRequest } from "../api/api";
 import { useFocusEffect } from "@react-navigation/native";
-import { Button, Card, ActivityIndicator, Divider, Portal, Dialog, TextInput} from "react-native-paper";
+import { Button, Card, ActivityIndicator, Divider, Portal, Dialog, TextInput, List } from "react-native-paper";
 import * as Clipboard from "expo-clipboard";
 
 /**
  * RecordsList Component
  *
- * Displays a scrollable list of records for a given form. Each record shows its
- * title and field values, including support for Location and Photo types.
- * Provides buttons to copy a record to the clipboard or delete it.
+ * Displays a scrollable list of records for a given form with filtering capabilities.
+ * Each record shows its title and field values, including support for Location and Photo types.
+ * Users can filter records by field values using various operators (equals, contains, greater than, etc.).
  *
  * Props:
  * @param {number|string} formId - The ID of the form whose records are displayed.
- * @param {any} refreshRecordKey - Optional key used to trigger reloading of records
- *                                 when it changes.
+ * @param {any} refreshRecordKey - Optional key used to trigger reloading of records when it changes.
+ *
+ * Features:
+ * - Dynamic filtering with support for text and numeric field types
+ * - Filter operators: equals, contains, starts with (text), greater/less than (numeric)
+ * - Copy record data to clipboard (excludes photos)
+ * - Delete records with optimistic UI updates
+ * - Displays active filters with record count
+ * - Clear all filters functionality
  *
  * Internal Functions:
- * - handleRecordvalue(record, fields)
- *   Renders a record's values as JSX. Handles special formatting for Location and Photo fields.
+ * - addCriterionForField(field, operation, value)
+ *   Adds a filter criterion for a specific field to the criteriaByField Map.
+ *   Triggers automatic filtering via useEffect.
+ *
+ * - applyFilter(criteriaMap)
+ *   Builds and executes PostgREST query based on active filter criteria.
+ *   Handles URL encoding and type-specific operators (ilike for text, numeric comparisons for numbers).
+ *
+ * - getFilterSummary()
+ *   Returns a human-readable string describing all active filters.
+ *
+ * - clearFilters()
+ *   Removes all active filters and displays original unfiltered records.
  *
  * - handleCopy(record)
- *   Copies a record to the clipboard in JSON format, excluding Photo fields.
- *   Alerts the user on success.
+ *   Copies a record to clipboard in JSON format, excluding Photo fields.
+ *
+ * - handleRecordvalue(record, fields)
+ *   Renders a record's values as JSX with special formatting for Location and Photo fields.
  *
  * - onDelete(id)
- *   Deletes a record by ID, updating the UI optimistically. Restores state on error.
+ *   Deletes a record by ID with optimistic UI update. Restores on error.
  *
  * Behavior:
- * - Fetches records and field metadata on mount and when formId changes.
- * - Reloads data whenever the screen gains focus.
- * - Handles loading, empty state, and error state gracefully.
- * - Provides a dialog to add filter criteria (UI only, no filtering logic implemented).
+ * - Fetches records and field metadata on mount and when formId changes
+ * - Reloads data whenever the screen gains focus
+ * - Automatically applies filters when criteriaByField Map changes
+ * - Handles loading, empty state, and error states gracefully
+ * - Shows filtered results count and active filter summary
  */
 export default function RecordsList({ formId, refreshRecordKey }) {
   // pass record and field list. 
   const formid = formId;
-  const [records, setRecords] = React.useState([]);
-  const [fields, setFields] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  const [empty, SetEmpty] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(true);
+  // State management 
+  const [records, setRecords] = React.useState([]); // original records
+  const [filtered, setFilteredRecords] = React.useState([]); // filtered records
+  const [fields, setFields] = React.useState([]); // original fields
+  const [loading, setLoading] = React.useState(true); // loading state
+  const [empty, SetEmpty] = React.useState(true); // empty
+  const [refreshing, setRefreshing] = React.useState(true); // refreshing state
   const [error, setError] = React.useState("");
-  const [criteriaOpen, setCriteriaOpen] = React.useState(false);
+  const [criteriaOpen, setCriteriaOpen] = React.useState(false); // criteria menu
+
+  const [fieldDialogOpen, setFieldDialogOpen] = React.useState(false); // for field picker
+  const [opDialogOpen, setOpDialogOpen] = React.useState(false);
+  const [criteriaByField, setCriteriaByField] = React.useState(() => new Map()); // Map<fieldId, Criterion[]>
+
+  const [criteriafield, setCriteriaField] = React.useState(null); // current criteria field
+  const [operator, setOperator] = React.useState("");  // for selected operator
+  const [filterValue, setFilterValue] = React.useState(""); // current value entered in by user
+  const [useFilterData, setUseFilterData] = React.useState(false); // boolean for use of filtered records
+
+  let operatorsByType = {
+    number: [
+      { value: "eq", label: "Equal" },
+      { value: "ne", label: "Not Equal" },
+      { value: "gt", label: "Greater" },
+      { value: "ge", label: "Greater or Equal" },
+      { value: "lt", label: "Less" },
+      { value: "le", label: "Less or Equal" },
+    ],
+    text: [
+      { value: "eq", label: "Equals" },
+      { value: "contains", label: "Contains" },
+      { value: "starts", label: "Starts With" },
+    ],
+  };
+
+// Add one criterion for a picked field
+const addCriterionForField = React.useCallback((field, operation, value) => {
+  setCriteriaField(null); // reset variables after adding
+  setOperator("");
+  setFilterValue("");
+  setCriteriaByField(prev => {
+    const m = new Map(prev);
+    const filters = { "filtOp": operation, "filterVal": value, "is_num": field.is_num};
+    m.set(field.id, filters); // {field id: {filters}}
+    return m;
+    });
+  const ops = field?.is_num ? operatorsByType.number : operatorsByType.text;
+  const label = ops.find(o => o.value === operation)?.label ?? operation;
+  Alert.alert("Filter added", `${field?.name ?? "Field"} ${label} ${String(value)}`);
+  }, []); // alert
+
+  const applyFilter = React.useCallback(async (criteriaMap) => {
+    if (!criteriaMap || criteriaMap.size === 0) { 
+       setUseFilterData(false);
+       setFilteredRecords([]);
+       setCriteriaOpen(false); // reset criterias 
+       return;
+    }
   
+    let query = `/record?form_id=eq.${formid}`;
+  
+    // Map through criteriaMap
+    criteriaMap.forEach((criteria, fieldId) => {
+      const { filtOp, filterVal, is_num } = criteria; // Add is_num to your criteria object
+      
+      let postgrestOp;
+      let finalVal = filterVal;
+      
+      if (is_num) {
+        // Number field - use number operators as-is
+        postgrestOp = filtOp; // eq, ne, gt, ge, lt, le
+        // Keep value as is (PostgREST will handle string-to-number comparison)
+      } else {
+        // Text field - convert operators
+        if (filtOp === "contains") {
+          postgrestOp = "ilike";
+          finalVal = `*${filterVal}*`;
+        } else if (filtOp === "starts") {
+          postgrestOp = "ilike";
+          finalVal = `${filterVal}*`;
+        } else if (filtOp === "eq") {
+          postgrestOp = "eq";
+        }
+      }
+      // build query
+      if (is_num) {
+      // For numbers with cast
+        query += `&values-%3ErecordValues-%3E%3E%22${fieldId}%22::int=${postgrestOp}.${finalVal}`;
+      } else {
+      // For text
+        query += `&values-%3ErecordValues-%3E%3E%22${fieldId}%22=${postgrestOp}.${finalVal}`;
+    }
+      });
+    const data = await apiRequest(query);
+    setFilteredRecords(data);
+    setUseFilterData(true);
+    // Use the query for your API call here
+    setCriteriaOpen(false);
+  }, [formid]);
+
+  // Watch for changes to criteriaByField (if new criterias are added for searching)
+  React.useEffect(() => {
+    applyFilter(criteriaByField);        // <-- will always get the latest map
+  }, [criteriaByField]); // run function when new criteria has been added.
+
+  // Add this helper function near the top with other functions
+  const getFilterSummary = React.useCallback(() => {
+    if (criteriaByField.size === 0) return null;
+    
+    const filters = [];
+    criteriaByField.forEach((criteria, fieldId) => {
+      const field = fields.find(f => f.id === fieldId);
+      if (!field) return;
+      
+      const ops = field.is_num ? operatorsByType.number : operatorsByType.text;
+      const opLabel = ops.find(o => o.value === criteria.filtOp)?.label ?? criteria.filtOp;
+      filters.push(`${field.name} ${opLabel} "${criteria.filterVal}"`);
+    });
+    
+    return filters.join(", ");
+  }, [criteriaByField, fields]);
+
+  // Add clear filters function
+  const clearFilters = React.useCallback(() => {
+  setCriteriaByField(new Map());
+  setUseFilterData(false);
+  setFilteredRecords([]);
+  }, []);
+  // operator choices depend on the selected field
+  const operatorOptions = React.useMemo(
+    () => (criteriafield ? (criteriafield.is_num ? operatorsByType.number : operatorsByType.text) : []),
+    [criteriafield]
+  );
+
+  // show the operator's label in the input
+  const getOpLabel = React.useCallback(
+    (val) => operatorOptions.find((o) => o.value === val)?.label ?? "",
+    [operatorOptions]
+  );
+  const openOpPicker = () => setOpDialogOpen(true);
+  const pickOperator = (opt) => {
+    setOperator(opt.value);
+    setOpDialogOpen(false);
+  };
+
+  // clear everything on cancel so original records are used
+  const resetCriteria = React.useCallback(() => {
+    setCriteriaField(null);
+    setOperator("");
+    setFilterValue("");
+    setFieldDialogOpen(false);
+    setOpDialogOpen(false);
+    setCriteriaOpen(false); // back to records view
+    setCriteriaByField(new Map()); 
+    setFilteredRecords([]);
+    setUseFilterData(false);
+  }, []);
+
+  const openFieldPicker = () => setFieldDialogOpen(true);
+
+  const pickField = (f) => {
+   setCriteriaField(f); // set current field
+   setFieldDialogOpen(false);
+   setOperator("");     // reset these after
+   setFilterValue("");         
+  };
+
+
   React.useEffect(() => { // load the screen and fill record screen with initial stuff
       (async () => {
         setCriteriaOpen(false); // no dialog box
@@ -63,7 +246,7 @@ export default function RecordsList({ formId, refreshRecordKey }) {
         })();
     }, [formid]);
 
-  const load = React.useCallback(async () => {
+  const load = React.useCallback(async () => { // loading new data on updates 
     try {
       setError(null);  // reset variable if an error occured
       const dataRecord = await apiRequest(`/record?form_id=eq.${formid}&order=id.asc`); // GET
@@ -78,11 +261,11 @@ export default function RecordsList({ formId, refreshRecordKey }) {
     }
     }, []); // empty dep array as it should function should only be loaded and created once
         
-  useFocusEffect(
+  useFocusEffect( // runs load when screen in focus or when told to by refresh key (insertion of record)
     React.useCallback(() => {
       setLoading(true);   // programmatic load -> big center spinner
       load();
-    }, [load, records, refreshRecordKey])
+    }, [load, refreshRecordKey])
   ); // for when screen comes into focus. 
 
   // Deleting a record
@@ -103,7 +286,7 @@ export default function RecordsList({ formId, refreshRecordKey }) {
   const handleCopy = (record) => {
     let copied = {"id" : record.id}; // copy id
     let values = record?.values; // currently a JSON string
-    if (values) {
+    if (typeof values === "string") {
       try { values = JSON.parse(record.values); } catch {
         return {}; // hadnle invalid JSON
       }
@@ -127,69 +310,77 @@ export default function RecordsList({ formId, refreshRecordKey }) {
         copied[field.name] = v; // use field name as key
       }
     });
-    // optional: copy to clipboard here
+    // copy Json format
     const text = JSON.stringify(copied, null, 2);
     Clipboard.setStringAsync(text);
     Alert.alert("Copied!", "Record copied to clipboard.");
     return copied; 
   }
 
+  // for representing a record and displaying it
   const handleRecordvalue = (record, fields) => {
-  // record is a JSON object with id, form_id, values.
-  let values = record?.values; // currently a JSON string
-  if (values) {
-    try { values = JSON.parse(record.values); } catch {}
-  }
-  if (!values || typeof values !== "object") {
-    return <Text style={{ opacity: 0.6 }}>No values</Text>;
-  }
+    // record is a JSON object with id, form_id, values.
+    let values = record?.values; // currently a JSON string
+    if (typeof values === "string") {
+      try { values = JSON.parse(record.values); } catch {}
+    }
+    if (!values || typeof values !== "object") {
+      return <Text style={{ opacity: 0.6 }}>No values</Text>;
+    }
 
-  // create a map of index to the object
-  const fieldsById = new Map(fields.map(f => [String(f.id), f]));
+    // create a map of index to the object
+    const fieldsById = new Map(fields.map(f => [String(f.id), f]));
 
-  // Title (top of card)
-  const titleNode = (
-    <Text style={{ fontSize: 22, fontWeight: "700", marginBottom: 4 }}>
-      {values.Title || "Untitled"}
-    </Text>
-  );
-  
-  const rows = Object.entries(values["recordValues"])
-    .filter(([, v]) => v !== null) // ignore nulls
-    .map(([id, v]) => {
-      const meta = fieldsById.get(String(id)) || {};
-      const type = meta.field_type;
-      const name = meta.name;
-      let valueNode = null;
-      if (type === "Location") {
-        const lat = v["latitude"];
-        const lng = v["longtitude"];
-        valueNode = <Text>Latitude:  {lat} {"\n"}Longtitude: {lng}</Text>
-      } else if (type === "Photo") {
-        valueNode = <Image source={{uri: v}} style={styles.answerImage} />
-      } else {
-        valueNode = <Text>{String(v)}</Text>;
-      }
-      return (
-        <View key={id} style={{ paddingVertical: 8 }}>
-          <Text style={{ fontSize: 14, color: "#6b7280", marginBottom: 2 }}>
-            {name}: ({type})
-          </Text>
-          {valueNode}
-        </View>
+    // Title (top of card)
+    const titleNode = (
+      <Text style={{ fontSize: 22, fontWeight: "700", marginBottom: 4 }}>
+        {values.Title || "Untitled"}
+      </Text>
       );
-    });
-  return (
-    <View>
-      {titleNode}
-      <Divider style={{ marginVertical: 6, opacity: 0.3 }} />
-      {rows.length ? rows : <Text style={{ opacity: 0.6 }}>No values</Text>}
-    </View>
-  );
-};
+  
+    const rows = Object.entries(values["recordValues"])
+      .filter(([, v]) => v !== null) // ignore nulls
+      .map(([id, v]) => {
+        const meta = fieldsById.get(String(id)) || {};
+        const type = meta.field_type;
+        const name = meta.name;
+        let valueNode = null;
+        if (type === "Location") {
+          const lat = v["latitude"];
+          const lng = v["longtitude"];
+          valueNode = <Text>Latitude:  {lat} {"\n"}Longtitude: {lng}</Text>
+        } else if (type === "Photo") {
+          valueNode = <Image source={{uri: v}} style={styles.answerImage} />
+        } else {
+          valueNode = <Text>{String(v)}</Text>;
+        }
+        return (
+          <View key={id} style={{ paddingVertical: 8 }}>
+            <Text style={{ fontSize: 14, color: "#6b7280", marginBottom: 2 }}>
+              {name}: ({type})
+            </Text>
+            {valueNode}
+          </View>
+        );
+      });
+    return (
+      <View>
+        {titleNode}
+        <Divider style={{ marginVertical: 6, opacity: 0.3 }} />
+        {rows.length ? rows : <Text style={{ opacity: 0.6 }}>No values</Text>}
+      </View>
+    );
+  };
 
   return (
-  <ScrollView style={{ flex: 1 }}>
+      <KeyboardAwareScrollView
+     style={{ flex: 1 }}
+     contentContainerStyle={{ paddingBottom: 24 }}
+     enableOnAndroid
+     keyboardShouldPersistTaps="handled"
+     extraScrollHeight={24}   // pushes field above keyboard
+     keyboardOpeningTime={0}
+   >
     <View style={{ alignItems: 'flex-end', paddingRight: 16}}>
     <Button 
       compact 
@@ -203,7 +394,134 @@ export default function RecordsList({ formId, refreshRecordKey }) {
       Add Criteria
     </Button>
   </View>
-    {records.length > 0 ? (
+    {useFilterData && criteriaByField.size > 0 && (
+      <Card style={[styles.card, { backgroundColor: '#e0f2fe' }]}>
+        <Card.Content>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontWeight: '600', marginBottom: 4 }}>
+                Active Filters ({filtered.length} record{filtered.length !== 1 ? 's' : ''})
+              </Text>
+              <Text style={{ fontSize: 13, color: '#555' }}>
+                {getFilterSummary()}
+              </Text>
+            </View>
+            <Button 
+              mode="contained" 
+              compact
+              buttonColor="#ef4444"
+              onPress={clearFilters}
+              icon="close"
+              style={{ borderRadius: 20 }}
+            >
+              Clear
+            </Button>
+          </View>
+        </Card.Content>
+      </Card>
+    )}
+    {criteriaOpen ? 
+    <Card style={styles.card} mode="elevated">
+      <Card.Content>
+        <Text style={styles.title}>
+          Add Filter Criteria
+        </Text>
+        <Text variant="bodyMedium" style={styles.sub}>
+          Select a field, operator and enter a value:
+        </Text>
+        {/* Field picker (fake dropdown using TextInput + Dialog) */}
+        <Pressable accessibilityRole="button" onPress={openFieldPicker}>
+    {/* Let the parent Pressable get the touch */}
+    <View pointerEvents="none">
+      <TextInput
+        mode="outlined"
+        label="Field"
+        value={criteriafield?.name || ""}   // use your actual field shape
+        editable={false}
+        right={<TextInput.Icon icon="chevron-down" />}
+        style={styles.input}
+    />
+    </View>
+  </Pressable>
+  <Pressable
+      accessibilityRole="button"
+      onPress={openOpPicker}
+      disabled={!criteriafield}
+      style={{ opacity: criteriafield ? 1 : 0.5, marginTop: 8}}
+    >
+      <View pointerEvents="none">
+        <TextInput
+          mode="outlined"
+          label="Operator"
+          value={getOpLabel(operator)}
+          editable={false}
+          right={<TextInput.Icon icon="chevron-down" />}
+          style={styles.input}
+        />
+      </View>
+    </Pressable>
+    <TextInput
+      mode="outlined"
+      label={criteriafield?.is_num ? "Value (number)" : "Value"}
+      value={filterValue}
+      onChangeText={setFilterValue}
+      keyboardType={criteriafield?.is_num ? "numeric" : "default"}
+      editable={Boolean(criteriafield) && Boolean(operator)}   // require field + operator first
+      style={[styles.input, { marginTop: 8, opacity: criteriafield && operator ? 1 : 0.5 }]}
+    />
+  <View style={{ flexDirection: "row", gap: 8, marginTop: 6 }}>
+  <Button
+    mode="contained"
+    disabled={!criteriafield || !operator || !filterValue}
+    onPress={() => {
+      if (!criteriafield) return;
+      addCriterionForField(criteriafield, operator, filterValue);
+    }}
+  >
+    Add
+  </Button>
+  <Button
+    mode="text"
+    onPress={resetCriteria}
+  >
+    Cancel
+  </Button>
+  </View>
+  <Portal>
+  <Dialog visible={fieldDialogOpen} onDismiss={() => setFieldDialogOpen(false)} style={styles.dialog}>
+    <Dialog.Title>Select field</Dialog.Title>
+        <Dialog.ScrollArea style={{ maxHeight: 400, paddingHorizontal: 0 }}>
+          <List.Section>
+            {fields.filter((f) => (f.field_type === "Single-Line-Text" || f.field_type === "Multi-Line-Text" 
+                                    || f.field_type === "Dropdown")).map((f) => (
+              <List.Item
+                key={f.id}
+                title={f.name}                     // was f.label
+                description={f.field_type}         // was f.type
+                onPress={() => pickField(f)}
+              />
+            ))}
+            </List.Section>
+          </Dialog.ScrollArea>
+        </Dialog>
+        </Portal>
+        <Portal>
+          <Dialog visible={opDialogOpen} onDismiss={() => setOpDialogOpen(false)} style={styles.dialog}>
+            <Dialog.Title>Select operator</Dialog.Title>
+            <Dialog.Content style={{ paddingLeft: 0 }}>
+              {operatorOptions.map((opt, i) => (
+                <List.Item
+                  key={opt.value}
+                  title={opt.label}
+                  onPress={() => pickOperator(opt)}
+                />
+              ))}
+            </Dialog.Content>
+          </Dialog>
+        </Portal>
+      </Card.Content>
+       </Card>
+    : (useFilterData ? filtered : records).length > 0 ? (
       <View style={styles.container}>
         {records.map((r) => (
           <Card key={r.id} mode="elevated" style={styles.heroCard}>
@@ -258,32 +576,13 @@ export default function RecordsList({ formId, refreshRecordKey }) {
           />
           <Card.Content style={styles.emptyFont}>
             <Text style={{ fontSize: 16, color: '#555' }}>
-              No records found. Start by adding a new record!
+              No records found. Start by adding a new record or changing your filters....
             </Text>
           </Card.Content>
         </Card>
       </View>
     )}
-    <Portal>
-      <Dialog
-        visible={criteriaOpen}
-        onDismiss={() => setCriteriaOpen(false)}
-        style={{ borderRadius: 16 }}
-      >
-        <Dialog.Title>Add Filter Criteria</Dialog.Title>
-        <Dialog.Content>
-          <Text>Select a field, operator, and enter a value.</Text>
-        </Dialog.Content>
-
-        <Dialog.Actions>
-          <Button mode="contained">
-            Add
-          </Button>
-          <Button onPress={() => setCriteriaOpen(false)}>Cancel</Button>
-        </Dialog.Actions>
-      </Dialog>
-    </Portal>
-  </ScrollView>
+  </KeyboardAwareScrollView>
   );
 }
 
@@ -295,6 +594,9 @@ const styles = StyleSheet.create({
   answerImage: { marginTop: 6, width: 280, height: 280, borderRadius: 8, resizeMode: "cover" },
   btnContent: { paddingVertical: 2, paddingHorizontal: 4 },
   btn: { borderRadius: 20 },
-  criteriaBtn: { marginTop: 18},
-  
+  criteriaBtn: { marginTop: 18 },
+  card: { marginHorizontal: 16, marginTop: 16, borderRadius: 16 }, 
+  sub: { color: "#6b7280", marginBottom: 12 },
+  title: { fontWeight: "700",  color: "#000", marginBottom: 4,fontSize: 18},
+  dialog: { borderRadius: 16, marginHorizontal: 14, alignSelf: "center", width: "92%" },
 });
