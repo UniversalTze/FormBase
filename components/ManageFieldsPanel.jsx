@@ -1,7 +1,15 @@
+// components/ManageFieldsPanel.jsx
 import React from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { Card, Text, TextInput, Switch, Button, Divider, Menu } from "react-native-paper";
  
+/**
+ * Converts a comma-separated string of options into a JSON string
+ * suitable for storing as dropdown options on the server.
+ *
+ * @param {string} dropdown - Comma-separated string of dropdown options.
+ * @returns {string|null} JSON string with key "ddOptions", or null if input is empty.
+ */
 function process_dropdown(dropdown) { 
   if (!dropdown)
     return null // explicitly returning null (for server)
@@ -14,22 +22,22 @@ function process_dropdown(dropdown) {
 export default function ManageFieldsPanel({
   initialExpanded = false,
   onSave, // async api call 
-  formId  // form id from forms/[id] page
+  formId  // form id of current form
 }) {
   const [expanded, setExpanded] = React.useState(initialExpanded);
   const [name, setName] = React.useState("");
   const [typeOpen, setTypeOpen] = React.useState(false);
-  const [type, setType] = React.useState("Single-Line-Text");
-  const [required, setRequired] = React.useState(false);
-  const [numeric, setNumeric] = React.useState(false);
-  const [saving, setSaving] = React.useState(false);
+  const [type, setType] = React.useState("Single-Line-Text"); // type of field
+  const [required, setRequired] = React.useState(false); // required flag
+  const [numeric, setNumeric] = React.useState(false); 
+  const [saving, setSaving] = React.useState(false);  // saving process
   const [dropdownJson, setDropdownJson] = React.useState(null);
-  
+
   const [menuKey, setMenuKey] = React.useState(0); // use to re-render dropdown so that 
 
 
   const canSave = (dropdownJson && type === "Dropdown" && name.trim().length > 0 & !saving) || 
-                  (name.trim().length > 0 && !saving);
+                  (name.trim().length > 0 && !saving); // check if possible to save. 
 
   const field = {
     "name": name.trim(),

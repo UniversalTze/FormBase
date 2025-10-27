@@ -1,3 +1,4 @@
+// components/RecordList.jsx
 import React from "react";
 import { View, Text, ScrollView, StyleSheet, Image, Alert } from "react-native";
 import { apiRequest } from "../api/api";
@@ -5,7 +6,35 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Button, Card, ActivityIndicator, Divider, Portal, Dialog, TextInput} from "react-native-paper";
 import * as Clipboard from "expo-clipboard";
 
-
+/**
+ * RecordsList Component
+ *
+ * Displays a scrollable list of records for a given form. Each record shows its
+ * title and field values, including support for Location and Photo types.
+ * Provides buttons to copy a record to the clipboard or delete it.
+ *
+ * Props:
+ * @param {number|string} formId - The ID of the form whose records are displayed.
+ * @param {any} refreshRecordKey - Optional key used to trigger reloading of records
+ *                                 when it changes.
+ *
+ * Internal Functions:
+ * - handleRecordvalue(record, fields)
+ *   Renders a record's values as JSX. Handles special formatting for Location and Photo fields.
+ *
+ * - handleCopy(record)
+ *   Copies a record to the clipboard in JSON format, excluding Photo fields.
+ *   Alerts the user on success.
+ *
+ * - onDelete(id)
+ *   Deletes a record by ID, updating the UI optimistically. Restores state on error.
+ *
+ * Behavior:
+ * - Fetches records and field metadata on mount and when formId changes.
+ * - Reloads data whenever the screen gains focus.
+ * - Handles loading, empty state, and error state gracefully.
+ * - Provides a dialog to add filter criteria (UI only, no filtering logic implemented).
+ */
 export default function RecordsList({ formId, refreshRecordKey }) {
   // pass record and field list. 
   const formid = formId;
@@ -47,14 +76,14 @@ export default function RecordsList({ formId, refreshRecordKey }) {
       setLoading(false); // first render complete, set to false
       setRefreshing(false); // set to true when needed to refresh the data
     }
-    }, []); // empty dep array as it should be loaded once.
+    }, []); // empty dep array as it should function should only be loaded and created once
         
   useFocusEffect(
     React.useCallback(() => {
       setLoading(true);   // programmatic load -> big center spinner
       load();
     }, [load, records, refreshRecordKey])
-  );
+  ); // for when screen comes into focus. 
 
   // Deleting a record
   const onDelete = React.useCallback(
@@ -84,7 +113,7 @@ export default function RecordsList({ formId, refreshRecordKey }) {
       // create a map of index to the object
     const fieldsById = new Map(fields.map(f => [String(f.id), f]));
 
-    Object.entries(recordFieldVals).forEach(([id, v]) => {
+    Object.entries(recordFieldVals).forEach(([id, v]) => { // map through each variable in record values { field.id: value}
     const field = fieldsById.get(String(id));
     if (!field) return; // skip missing metadata
     if (field.field_type === "Photo") return; // skip images

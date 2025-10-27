@@ -1,7 +1,22 @@
+// components/FormEditor.jsx
 import React from "react";
 import { StyleSheet, View, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { Text, TextInput, Button } from "react-native-paper";
 
+/**
+ * FormEditor component
+ *
+ * Renders a form editor UI for creating or editing a form with a name and description.
+ * Handles submission and optional cancellation.
+ *
+ * Props:
+ * @param {string} [title="Add Form"] - The heading/title of the form screen.
+ * @param {object} [initial={ name: "", description: "" }] - Initial values for name and description.
+ * @param {boolean} [submitting=false] - Whether the form is currently submitting (disables inputs/buttons).
+ * @param {function} onSubmit - Callback invoked with `{ name, description }` when the user submits the form.
+ * @param {function} [onCancel] - Optional callback invoked when the user presses the cancel button.
+ * @param {string} [submitLabel="Submit"] - Label text for the submit button.
+ */
 export default function FormEditor({
   title = "Add Form",
   initial = { name: "", description: "" },

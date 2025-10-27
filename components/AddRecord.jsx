@@ -10,6 +10,7 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import { File, Directory, Paths } from 'expo-file-system';
 
+
 const iconForType = (type = "") => {
   if (type.includes("Location")) return "map-marker";
   if (type.includes("Photo")) return "camera";
@@ -19,6 +20,21 @@ const iconForType = (type = "") => {
   return "shape";
 };
 
+/**
+ * AddRecordForm component
+ *
+ * Renders a form UI for creating a new record for a given form ID. Handles:
+ *  - Title input
+ *  - Dynamic field inputs (Text, Multi-line Text, Dropdown, Location, Photo)
+ *  - Validation of required fields
+ *  - Submission to API via onCreate callback
+ *
+ * Props:
+ * @param {number|string} formId - ID of the form to add records to.
+ * @param {function} onCreate - Optional. Callback to handle record creation. Defaults to POST /record.
+ * @param {any} refreshFieldKey - Key used to refresh fields when changed externally.
+ * @param {string} formDescription - Description text shown in field dialogs.
+ */
 export default function AddRecordForm({
   formId,
   onCreate, // optional: async (payload) => void ; defaults to POST /record
@@ -220,7 +236,7 @@ export default function AddRecordForm({
         setLoadingFields(true);
       }
       load(); // load data
-    }, [load, refreshFieldKey])
+    }, [load, refreshFieldKey]) // refresh field key for added dynamic added fields
   );
 
   const showNoFieldsAlert = () => {
