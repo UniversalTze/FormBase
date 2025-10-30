@@ -19,3 +19,7 @@ Iphone 13 and default android 16.0 (Medium phone) on Android Emulator.
 ## Generative AI
 GEN AI (CHATGBT 4.5 and 5.0) along with Claude (free version) has been used to quickly build components, debug and
 summarise information in docs.
+
+## Current Problems: 
+- Add a 'OR' for filter builder criteria.
+- Resfresh page for deleted list (so when deleted, its updated).(either remove button in filter mode or be able to handle this)
