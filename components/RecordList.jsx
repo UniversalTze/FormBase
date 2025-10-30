@@ -523,7 +523,7 @@ const addCriterionForField = React.useCallback((field, operation, value) => {
        </Card>
     : (useFilterData ? filtered : records).length > 0 ? (
       <View style={styles.container}>
-        {records.map((r) => (
+        {(useFilterData ? filtered : records).map((r) => (
           <Card key={r.id} mode="elevated" style={styles.heroCard}>
             <Card.Content>
               {handleRecordvalue(r, fields)}
