@@ -1,9 +1,8 @@
-import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from "expo-router";
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { Tabs, useLocalSearchParams } from 'expo-router';
+import { createContext, useContext, useState } from 'react';
 
-// Create the context
+// Create the context object
 const RefreshContext = createContext();
 
 // Custom hook to use the context
@@ -15,15 +14,19 @@ export const useRefresh = () => {
   return context;
 };
 
-// Provider component
+// Provider component, everything in <RefreshProvider> </RefreshProvider> are "children"
 function RefreshProvider({ children }) {
   const [refreshKey, setRefreshKey] = useState(0);
   
   const triggerRefresh = () => setRefreshKey(prev => prev + 1);
-  
+  // context object gives you a provider as part of context object
+  // makes that value avaliable to all components 
+  // that call useRresh to grab the refresh context
+  // components that triggerRefresh -> will trigger an update after an action
+  // components that need to be updated use the refreshKey
   return (
     <RefreshContext.Provider value={{ refreshKey, triggerRefresh }}>
-      {children}
+      {children} {/* whatever is inside RefreshProvider */}
     </RefreshContext.Provider>
   );
 }

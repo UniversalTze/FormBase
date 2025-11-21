@@ -1,12 +1,12 @@
 // app/forms/[formid]/(tabs)/records
-import React from "react";
-import { View, Image, StyleSheet, ScrollView, Alert, Platform} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { apiRequest } from "../../../../api/api";
 import Header from "../../../../components/header";
 import RecordsList from "../../../../components/RecordList";
 import SummaryCard from "../../../../components/SummaryCard";
-import { apiRequest } from "../../../../api/api";
 import { useRefresh } from './_layout';
 
 /**
@@ -22,7 +22,7 @@ export default function SpecificRecordForm() {
   const [form, setForm] = React.useState(null);
   const [error, setError] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
-  const { refreshKey } = useRefresh();
+  const { refreshKey } = useRefresh(); // consumer of context provided. 
 
   React.useEffect(() => { // load the screen and fill record screen with initial stuff
     (async () => {
